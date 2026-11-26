@@ -10,7 +10,9 @@ LATENCY = Histogram("portfolio_http_request_duration_seconds", "HTTP request dur
 async def collect_metrics(request: Request, call_next):
     with LATENCY.time():
         response = await call_next(request)
-    REQUESTS.labels(request.method, request.url.path, str(response.status_code)).inc()
+    route = request.scope.get("route")
+    route_label = getattr(route, "path", "unmatched")
+    REQUESTS.labels(request.method, route_label, str(response.status_code)).inc()
     return response
 
 @app.get("/", tags=["service"])
