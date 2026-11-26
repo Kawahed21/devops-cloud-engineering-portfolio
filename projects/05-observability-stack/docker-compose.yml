@@ -1,0 +1,15 @@
+services:
+  api:
+    build:
+      context: ../02-containerized-microservice
+    ports:
+      - "8000:8000"
+  prometheus:
+    image: prom/prometheus:v2.53.0
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./prometheus/prometheus.yml:/etc/prometheus/prometheus.yml:ro
+      - ./prometheus/alerts.yml:/etc/prometheus/alerts.yml:ro
+    depends_on:
+      - api
