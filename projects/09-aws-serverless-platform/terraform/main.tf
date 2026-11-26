@@ -243,6 +243,53 @@ resource "aws_vpc_endpoint" "dynamodb" {
   }
 }
 
+resource "aws_security_group" "interface_endpoints" {
+  name        = "${var.project_name}-interface-endpoints"
+  description = "Allow HTTPS from Lambda to private AWS service endpoints"
+  vpc_id      = aws_vpc.lambda.id
+
+  ingress {
+    description     = "HTTPS from Lambda ENIs"
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    security_groups = [aws_security_group.lambda.id]
+  }
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-endpoint-sg"
+  }
+}
+
+resource "aws_vpc_endpoint" "logs" {
+  vpc_id              = aws_vpc.lambda.id
+  service_name        = "com.amazonaws.${var.aws_region}.logs"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+  subnet_ids          = aws_subnet.lambda_private[*].id
+  security_group_ids  = [aws_security_group.interface_endpoints.id]
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-logs-endpoint"
+  }
+}
+
+resource "aws_vpc_endpoint" "xray" {
+  vpc_id              = aws_vpc.lambda.id
+  service_name        = "com.amazonaws.${var.aws_region}.xray"
+  vpc_endpoint_type   = "Interface"
+  private_dns_enabled = true
+  subnet_ids          = aws_subnet.lambda_private[*].id
+  security_group_ids  = [aws_security_group.interface_endpoints.id]
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-xray-endpoint"
+  }
+}
+
 resource "aws_security_group" "lambda" {
   name        = "${var.project_name}-lambda"
   description = "Allow HTTPS egress only to the DynamoDB gateway endpoint prefix list"
@@ -254,6 +301,14 @@ resource "aws_security_group" "lambda" {
     protocol        = "tcp"
     prefix_list_ids = [aws_vpc_endpoint.dynamodb.prefix_list_id]
     description     = "DynamoDB gateway endpoint"
+  }
+
+  egress {
+    from_port   = 443
+    to_port     = 443
+    protocol    = "tcp"
+    cidr_blocks = [var.lambda_vpc_cidr]
+    description = "Private CloudWatch Logs and X-Ray interface endpoints"
   }
 
   tags = {
@@ -308,6 +363,14 @@ resource "aws_iam_role_policy" "lambda" {
           "kms:GenerateDataKey"
         ]
         Resource = aws_kms_key.application.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "xray:PutTraceSegments",
+          "xray:PutTelemetryRecords"
+        ]
+        Resource = "*"
       },
       {
         Effect = "Allow"
@@ -370,6 +433,8 @@ resource "aws_lambda_function" "api" {
     aws_iam_role_policy_attachment.lambda_vpc,
     aws_route_table_association.lambda_private,
     aws_vpc_endpoint.dynamodb,
+    aws_vpc_endpoint.logs,
+    aws_vpc_endpoint.xray,
     aws_cloudwatch_log_group.lambda
   ]
 }
