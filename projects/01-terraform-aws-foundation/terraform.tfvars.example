@@ -1,0 +1,4 @@
+aws_region = "ap-south-1"
+project_name = "portfolio-lab"
+vpc_cidr = "10.40.0.0/16"
+enable_nat_gateways = false
