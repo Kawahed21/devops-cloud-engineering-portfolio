@@ -63,5 +63,6 @@ class OpenAIResponsesPlanner:
                 return ToolCall(
                     name=item["name"],
                     arguments=json.loads(item.get("arguments") or "{}"),
+                    call_id=item.get("call_id"),
                 )
         return None
