@@ -52,7 +52,7 @@ jobs:
       - name: Format check
         run: |
           terraform fmt -check -diff -recursive projects/01-terraform-aws-foundation
-          terraform fmt -check -recursive projects/09-aws-serverless-platform/terraform
+          terraform fmt -check -diff -recursive projects/09-aws-serverless-platform/terraform
           terraform fmt -check -recursive projects/10-azure-container-apps-platform/terraform
       - name: Validate AWS network foundation
         working-directory: projects/01-terraform-aws-foundation
