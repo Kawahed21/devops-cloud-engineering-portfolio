@@ -31,3 +31,19 @@ variable "enable_nat_gateways" {
   type        = bool
   default     = false
 }
+
+variable "enable_vpc_flow_logs" {
+  description = "Create CloudWatch VPC Flow Logs; incurs CloudWatch ingestion and storage charges"
+  type        = bool
+  default     = false
+}
+
+variable "flow_log_retention_days" {
+  description = "CloudWatch retention for VPC Flow Logs"
+  type        = number
+  default     = 7
+  validation {
+    condition     = var.flow_log_retention_days >= 1
+    error_message = "Flow log retention must be at least one day."
+  }
+}
