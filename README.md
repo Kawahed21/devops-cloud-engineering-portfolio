@@ -1,8 +1,8 @@
 # DevOps & Cloud Engineering Portfolio
 
-A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, security, observability, AI engineering and cloud labs. Each project is documented with its objective, architecture, prerequisites, implementation plan, validation, security considerations, cost controls and extension ideas.
+A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, security, observability, AI engineering and cloud labs. Each project is documented with its objective, architecture, prerequisites, implementation, validation, security considerations, cost controls and extension ideas.
 
-> **Status and integrity:** This repository is a documented implementation portfolio. Code, tests and infrastructure definitions are committed here. Validation evidence is tracked in [PROGRESS.md](PROGRESS.md). Cloud resources have not been provisioned; AWS/Azure plans and live deployments require separate credentials and explicit cost approval. Follow each lab's validation steps and replace example values before deployment. Never commit credentials, private keys, tokens, tenant secrets or real customer data.
+> **Status and integrity:** Code, tests and infrastructure definitions are committed here. Validation evidence is tracked in [PROGRESS.md](PROGRESS.md). Automated checks have passed as recorded in the tracker. Cloud resources have not been provisioned; AWS/Azure plans and live deployments require separate credentials and explicit cost approval. Never commit credentials, private keys, tokens, tenant secrets or real customer data.
 
 ## Projects
 
@@ -12,8 +12,12 @@ A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, securit
 | 02 | [Containerized Python Microservice](projects/02-containerized-microservice/README.md) | Python, Docker, pytest, GitHub Actions | Tested API image and CI workflow |
 | 03 | [Kubernetes Helm Platform](projects/03-kubernetes-helm-platform/README.md) | Kubernetes, Helm, probes, resources | Deployable and configurable workload |
 | 04 | [DevSecOps Pipeline](projects/04-devsecops-pipeline/README.md) | GitHub Actions, Trivy, Checkov, Gitleaks | Security gates across source, IaC and images |
-| 05 | [Observability Stack](projects/05-observability-stack/README.md) | Prometheus, Grafana, Alertmanager | Metrics, dashboards and actionable alerts |
-| 06 | [Azure Sentinel Detection Lab](projects/06-azure-sentinel-detection-lab/README.md) | Microsoft Sentinel, KQL, sample events | Detection engineering lab with KQL examples |\n| 07 | [Secure AI Agent Runtime](projects/07-ai-agent-platform/README.md) | Python, tool allowlists, bounded execution, pytest | Auditable tool-using agent foundation |\n| 08 | [RAG Knowledge Assistant](projects/08-rag-knowledge-assistant/README.md) | Python, chunking, embeddings interface, retrieval | Testable retrieval-augmented generation core |\n| 09 | [AWS Serverless Platform](projects/09-aws-serverless-platform/README.md) | API Gateway, Lambda, DynamoDB, Terraform | Serverless HTTP API with least-privilege IAM |\n| 10 | [Azure Container Apps Platform](projects/10-azure-container-apps-platform/README.md) | Azure Container Apps, Log Analytics, Terraform | Container platform with bounded scaling and logging |
+| 05 | [Observability Stack](projects/05-observability-stack/README.md) | Prometheus, Grafana, Docker Compose | Metrics, dashboards and actionable alerts |
+| 06 | [Azure Sentinel Detection Lab](projects/06-azure-sentinel-detection-lab/README.md) | Microsoft Sentinel, KQL, sample events | Detection engineering lab with KQL examples |
+| 07 | [Secure AI Agent Runtime](projects/07-ai-agent-platform/README.md) | Python, OpenAI Responses API, tool allowlists | Bounded, auditable tool-using agent |
+| 08 | [RAG Knowledge Assistant](projects/08-rag-knowledge-assistant/README.md) | Python, embeddings, retrieval, generation | Testable retrieval-augmented generation core |
+| 09 | [AWS Serverless Platform](projects/09-aws-serverless-platform/README.md) | API Gateway, Lambda, DynamoDB, Terraform | Private-network serverless API with security controls |
+| 10 | [Azure Container Apps Platform](projects/10-azure-container-apps-platform/README.md) | Azure Container Apps, Log Analytics, Terraform | Container platform with bounded scaling and logging |
 
 ## Suggested learning and delivery order
 
@@ -22,7 +26,11 @@ A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, securit
 3. Deploy it to local Kubernetes using Helm.
 4. Add security checks to the CI workflow.
 5. Instrument the service and validate alert rules.
-6. Explore Sentinel KQL using synthetic events in a non-production workspace.\n7. Extend the secure agent runtime with an approved model provider and tool evaluation harness.\n8. Connect the RAG core to a persistent vector store and evaluate retrieval quality.\n9. Deploy the AWS serverless sample only after reviewing the plan and estimated charges.\n10. Deploy the Azure Container Apps sample only after reviewing the plan, identity and ingress security.
+6. Explore Sentinel KQL using synthetic events in a non-production workspace.
+7. Extend the secure agent runtime with an approved model provider and tool evaluation harness.
+8. Connect the RAG core to a persistent vector store and evaluate retrieval quality.
+9. Deploy the AWS serverless sample only after reviewing the plan and estimated charges.
+10. Deploy the Azure Container Apps sample only after reviewing the plan, identity and ingress security.
 
 ## Repository layout
 
@@ -34,17 +42,27 @@ A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, securit
 │   ├── 03-kubernetes-helm-platform/
 │   ├── 04-devsecops-pipeline/
 │   ├── 05-observability-stack/
-│   ├── 06-azure-sentinel-detection-lab/\n│   ├── 07-ai-agent-platform/\n│   ├── 08-rag-knowledge-assistant/\n│   ├── 09-aws-serverless-platform/\n│   └── 10-azure-container-apps-platform/
+│   ├── 06-azure-sentinel-detection-lab/
+│   ├── 07-ai-agent-platform/
+│   ├── 08-rag-knowledge-assistant/
+│   ├── 09-aws-serverless-platform/
+│   └── 10-azure-container-apps-platform/
 ├── docs/
 │   ├── portfolio-roadmap.md
 │   └── security-and-cost.md
 └── .github/workflows/
-    └── ci.yml
+    ├── ci.yml
+    ├── security.yml
+    └── final-validation.yml
 ```
+
+## Validation
+
+The complete automated validation batch passed. See [PROGRESS.md](PROGRESS.md) for the run ID, test counts and the remaining cloud/workspace-dependent work. All GitHub Actions workflows are manual-trigger only to avoid repeated runs on every commit.
 
 ## About
 
-This portfolio demonstrates practical DevOps and cloud engineering patterns relevant to AWS, Azure, Linux, Docker, Kubernetes, Terraform, CI/CD, monitoring and security. It is intended as a lab and a foundation for iterative, evidence-backed project work.
+This portfolio demonstrates practical DevOps and cloud engineering patterns relevant to AWS, Azure, Linux, Docker, Kubernetes, Terraform, CI/CD, monitoring, security and AI engineering. It is intended as an evidence-backed lab portfolio and a foundation for further iteration.
 
 ## License
 
