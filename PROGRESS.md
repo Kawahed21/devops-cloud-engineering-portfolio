@@ -6,23 +6,27 @@ This tracker separates committed code from validations actually executed. Cloud 
 
 | Project | Committed implementation | Validation evidence / remaining |
 |---|---|---|
-| 01 AWS Terraform | VPC, two public/private AZ subnets, IGW, public/private route tables, optional AZ-local NAT Gateways, variables and outputs | Terraform CLI is unavailable in this execution environment; fmt/validate/plan remain pending. NAT is disabled by default to avoid accidental charges. |
-| 02 FastAPI container | API root, health/readiness, Prometheus metrics, Dockerfile, requirements and pytest suite | **Passed:** `pytest -q` — 3 passed in 0.31s using the exact committed app and test source in an isolated local test directory. Docker image build not run (Docker CLI unavailable). |
-| 03 Kubernetes Helm | Deployment, Service, probes, resource controls and pod hardening | Helm lint/render not run (Helm CLI unavailable). |
-| 04 DevSecOps | GitHub Actions workflow for Gitleaks, Checkov and Trivy; CI workflow includes API tests, Terraform format and Helm checks | Workflow execution pending GitHub Actions. |
-| 05 Observability | Prometheus scrape config, alert rules and Docker Compose stack | **Passed:** YAML parse checks for Compose, Prometheus scrape config and alert rules using PyYAML. Docker Compose/Prometheus runtime validation not run (Docker CLI unavailable). |
-| 06 Azure Sentinel | Failed-sign-in and low-frequency IP KQL examples with workspace guidance | Requires compatible Log Analytics/Sentinel workspace and sample events; not executed. |
+| 01 AWS Terraform | VPC, two public/private AZ subnets, IGW, public/private route tables, optional AZ-local NAT Gateways, restricted default security group, variables and outputs | GitHub Actions Terraform formatting job passed on commit `d5b94527`; Checkov initially found issues, which were addressed in later commits. Latest Checkov rerun pending. No AWS plan/apply run. |
+| 02 FastAPI container | API root, health/readiness, Prometheus metrics, Dockerfile, requirements and pytest suite | **Passed locally:** `pytest -q` — 3 passed in 0.31s using exact committed app/test source. GitHub Actions Python test job also passed on `d5b94527`. Docker image build not run locally. |
+| 03 Kubernetes Helm | Deployment, Service, probes, resource controls and pod hardening | GitHub Actions Helm lint and template-render jobs passed on `d5b94527`. No cluster deployment run. |
+| 04 DevSecOps | Gitleaks, Checkov and Trivy GitHub Actions workflow | Gitleaks passed on earlier run. Checkov findings were addressed; Trivy action ref was corrected. Latest security workflow rerun pending. |
+| 05 Observability | Prometheus scrape config, alert rules, Docker Compose, Grafana datasource/dashboard provisioning | **Passed:** YAML parsing for Compose, Prometheus scrape/alert config and Grafana provisioning; Grafana dashboard JSON parsed with 4 panels. Docker/Prometheus/Grafana runtime not run locally. |
+| 06 Azure Sentinel | Failed-sign-in and low-frequency IP KQL examples with workspace guidance | Requires compatible Log Analytics/Sentinel workspace and synthetic sign-in events; not executed. |
+
+## CI evidence
+- Portfolio CI run `45864408011` completed successfully for commit `d5b94527`: documentation, Python API tests, Terraform formatting and Helm lint/render all passed.
+- Later commits added Grafana assets and hardened Terraform/security workflows. Their CI/security runs are being checked separately; do not infer that the latest commit has passed until its runs complete.
 
 ## Outstanding work
-- Inspect GitHub Actions results and fix any failed jobs.
-- Run Terraform fmt/validate with Terraform CLI and provider initialization.
-- Run Helm lint/template with Helm CLI and deploy only to a disposable cluster after image publication.
-- Add Grafana dashboard provisioning and Alertmanager receiver configuration.
-- Validate KQL against synthetic records in a test workspace.
+- Verify latest GitHub Actions and DevSecOps run results; fix failures.
+- Run Terraform provider validation/plan in an approved AWS environment (no apply without explicit cost approval).
+- Run Docker Compose and Prometheus/Grafana integration tests.
+- Validate KQL against synthetic records in a test Sentinel workspace.
+- Add Alertmanager routing, persistent volumes and production auth/TLS controls.
 - Add sanitized screenshots and deployment evidence only after actual execution.
 
 ## Environment limitations
-The execution container could not resolve github.com for a git clone and does not have Terraform, Helm or Docker installed. GitHub connector writes were used to commit the project files. This prevents local Docker, Helm and Terraform execution in this run; those checks are included in GitHub Actions where applicable.
+The local execution container cannot resolve github.com for a git clone and does not have Terraform, Helm or Docker installed. GitHub Actions supplies Terraform/Helm validation and Python tests. Docker and cloud-dependent validation remain outstanding.
 
 ## Cloud safety
 No billable AWS or Azure resources are created by this automation. AWS apply and Sentinel workspace ingestion require separate cost review and explicit approval. Never commit secrets, Terraform state, kubeconfigs, tokens or customer data.
