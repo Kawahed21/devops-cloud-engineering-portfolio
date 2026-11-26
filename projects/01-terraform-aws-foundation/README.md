@@ -58,7 +58,7 @@ enable_vpc_flow_logs    = true
 flow_log_retention_days = 7
 ```
 
-The CloudWatch log group and IAM resources are created only when the flag is enabled.
+The CloudWatch log group and IAM resources are created only when the flag is enabled. This foundation example does not configure a customer-managed KMS key for that log group; enable log-group encryption separately if required by your environment's policy.
 
 ## Validation checklist
 - [ ] No CIDR overlap with existing networks.
