@@ -1,0 +1,44 @@
+{
+  "id": null,
+  "uid": "portfolio-api",
+  "title": "Portfolio API Overview",
+  "tags": ["portfolio", "fastapi"],
+  "timezone": "browser",
+  "schemaVersion": 39,
+  "version": 1,
+  "refresh": "30s",
+  "panels": [
+    {
+      "id": 1,
+      "type": "timeseries",
+      "title": "Request rate",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(rate(portfolio_http_requests_total[5m]))", "legendFormat": "requests/sec", "refId": "A"}]
+    },
+    {
+      "id": 2,
+      "type": "timeseries",
+      "title": "HTTP 5xx rate",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 0},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "sum(rate(portfolio_http_requests_total{status=~\"5..\"}[5m]))", "legendFormat": "5xx/sec", "refId": "A"}]
+    },
+    {
+      "id": 3,
+      "type": "timeseries",
+      "title": "p95 request duration",
+      "gridPos": {"h": 8, "w": 12, "x": 0, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "histogram_quantile(0.95, sum by (le) (rate(portfolio_http_request_duration_seconds_bucket[5m])))", "legendFormat": "p95 seconds", "refId": "A"}]
+    },
+    {
+      "id": 4,
+      "type": "stat",
+      "title": "API target up",
+      "gridPos": {"h": 8, "w": 12, "x": 12, "y": 8},
+      "datasource": {"type": "prometheus", "uid": "prometheus"},
+      "targets": [{"expr": "up{job=\"portfolio-api\"}", "legendFormat": "up", "refId": "A"}]
+    }
+  ]
+}
