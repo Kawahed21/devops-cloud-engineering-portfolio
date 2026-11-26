@@ -1,0 +1,27 @@
+name: Portfolio CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  repository-checks:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+      - name: Check required project documentation
+        shell: bash
+        run: |
+          set -euo pipefail
+          test -s README.md
+          test -s LICENSE
+          for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md; do
+            test -s "$file"
+          done
+          echo "Portfolio documentation checks passed."
