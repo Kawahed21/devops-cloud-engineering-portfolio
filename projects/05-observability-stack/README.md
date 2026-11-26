@@ -23,7 +23,7 @@ for i in $(seq 1 20); do curl -fsS http://localhost:8000/health >/dev/null; done
 curl -fsS http://localhost:8000/metrics
 ```
 
-Prometheus scrapes the API by Compose service DNS name and loads alert rules from `prometheus/alerts.yml`. Stop the stack with:
+Prometheus scrapes the API by Compose service DNS name and loads alert rules from `prometheus/alerts.yml`. The rules detect a missing scrape target and a sustained HTTP 5xx ratio above five percent; they are evaluated by Prometheus but no Alertmanager notification receiver is configured in this lab. Stop the stack with:
 
 ```bash
 docker compose down
