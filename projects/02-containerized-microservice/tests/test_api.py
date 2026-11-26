@@ -17,3 +17,10 @@ def test_metrics_endpoint_exposes_prometheus_format():
     response = client.get("/metrics")
     assert response.status_code == 200
     assert "portfolio_http_requests_total" in response.text
+
+def test_metrics_use_bounded_route_labels():
+    client.get("/users/unbounded-user-id")
+    response = client.get("/metrics")
+    assert response.status_code == 200
+    assert 'path="unmatched"' in response.text
+    assert "/users/unbounded-user-id" not in response.text
