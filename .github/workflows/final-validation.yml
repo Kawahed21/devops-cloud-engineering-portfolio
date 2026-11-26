@@ -109,3 +109,38 @@ jobs:
           ignore-unfixed: true
           vuln-type: os,library
           severity: CRITICAL,HIGH
+
+  observability-integration:
+    runs-on: ubuntu-latest
+    env:
+      GRAFANA_ADMIN_PASSWORD: ci-only-password
+    steps:
+      - uses: actions/checkout@v4
+      - name: Validate Compose configuration
+        run: docker compose -f projects/05-observability-stack/docker-compose.yml config --quiet
+      - name: Start observability stack
+        run: docker compose -f projects/05-observability-stack/docker-compose.yml up -d --build
+      - name: Verify API health and metrics
+        run: |
+          set -euo pipefail
+          for i in $(seq 1 30); do
+            if curl -fsS http://localhost:8000/health >/dev/null; then break; fi
+            sleep 2
+          done
+          curl -fsS http://localhost:8000/health
+          curl -fsS http://localhost:8000/metrics | grep -q "portfolio_http_requests_total"
+      - name: Verify Prometheus scrape and Grafana health
+        run: |
+          set -euo pipefail
+          query='http://localhost:9090/api/v1/query?query=up%7Bjob%3D%22portfolio-api%22%7D'
+          for i in $(seq 1 40); do
+            if curl -fsS "$query" | python -c 'import json,sys; d=json.load(sys.stdin); assert d["data"]["result"] and d["data"]["result"][0]["value"][1] == "1"'; then
+              break
+            fi
+            sleep 2
+          done
+          curl -fsS "$query" | python -c 'import json,sys; d=json.load(sys.stdin); assert d["data"]["result"] and d["data"]["result"][0]["value"][1] == "1"'
+          curl -fsS http://localhost:3000/api/health | python -c 'import json,sys; assert json.load(sys.stdin)["database"] == "ok"'
+      - name: Stop observability stack
+        if: always()
+        run: docker compose -f projects/05-observability-stack/docker-compose.yml down -v
