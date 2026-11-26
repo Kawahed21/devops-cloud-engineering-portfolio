@@ -1,0 +1,21 @@
+groups:
+  - name: portfolio-api
+    rules:
+      - alert: PortfolioApiTargetDown
+        expr: up{job="portfolio-api"} == 0
+        for: 2m
+        labels:
+          severity: critical
+        annotations:
+          summary: Portfolio API target is down
+      - alert: PortfolioApiHigh5xxRatio
+        expr: |
+          sum(rate(portfolio_http_requests_total{job="portfolio-api",status=~"5.."}[5m]))
+          /
+          clamp_min(sum(rate(portfolio_http_requests_total{job="portfolio-api"}[5m])), 1)
+          > 0.05
+        for: 5m
+        labels:
+          severity: warning
+        annotations:
+          summary: Portfolio API 5xx ratio exceeds 5 percent
