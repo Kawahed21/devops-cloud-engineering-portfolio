@@ -44,7 +44,10 @@ jobs:
         with:
           terraform_version: "1.9.8"
       - name: Check Terraform formatting
-        run: terraform fmt -check -recursive projects/01-terraform-aws-foundation projects/09-aws-serverless-platform/terraform projects/10-azure-container-apps-platform/terraform
+        run: |
+          terraform fmt -check -recursive projects/01-terraform-aws-foundation
+          terraform fmt -check -recursive projects/09-aws-serverless-platform/terraform
+          terraform fmt -check -recursive projects/10-azure-container-apps-platform/terraform
 
   helm-chart:
     runs-on: ubuntu-latest
