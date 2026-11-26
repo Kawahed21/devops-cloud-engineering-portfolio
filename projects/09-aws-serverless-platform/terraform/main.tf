@@ -16,10 +16,6 @@ provider "aws" {
   region = var.aws_region
 }
 
-data "aws_availability_zones" "available" {
-  state = "available"
-}
-
 data "aws_caller_identity" "current" {}
 
 data "archive_file" "lambda" {
@@ -90,7 +86,8 @@ resource "aws_dynamodb_table" "messages" {
   }
 
   server_side_encryption {
-    enabled = true
+    enabled     = true
+    kms_key_arn = aws_kms_key.application.arn
   }
 
   point_in_time_recovery {
@@ -199,10 +196,16 @@ resource "aws_flow_log" "lambda_vpc" {
   }
 }
 
+resource "aws_default_security_group" "lambda" {
+  vpc_id  = aws_vpc.lambda.id
+  ingress = []
+  egress  = []
+}
+
 resource "aws_subnet" "lambda_private" {
   count                   = 2
   vpc_id                  = aws_vpc.lambda.id
-  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  availability_zone       = var.lambda_availability_zones[count.index]
   cidr_block              = cidrsubnet(var.lambda_vpc_cidr, 8, count.index)
   map_public_ip_on_launch = false
 
