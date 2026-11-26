@@ -1,5 +1,5 @@
 locals {
-  azs          = var.availability_zones
+  azs = var.availability_zones
   common_tags = {
     Project     = var.project_name
     ManagedBy   = "Terraform"
@@ -22,28 +22,28 @@ resource "aws_cloudwatch_log_group" "vpc_flow_logs" {
 }
 
 resource "aws_iam_role" "vpc_flow_logs" {
-  count              = var.enable_vpc_flow_logs ? 1 : 0
-  name               = "${var.project_name}-vpc-flow-logs"
+  count = var.enable_vpc_flow_logs ? 1 : 0
+  name  = "${var.project_name}-vpc-flow-logs"
   assume_role_policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [{
       Effect    = "Allow"
       Principal = { Service = "vpc-flow-logs.amazonaws.com" }
       Action    = "sts:AssumeRole"
     }]
   })
-  tags               = local.common_tags
+  tags = local.common_tags
 }
 
 resource "aws_iam_role_policy" "vpc_flow_logs" {
-  count  = var.enable_vpc_flow_logs ? 1 : 0
-  name   = "${var.project_name}-vpc-flow-logs"
-  role   = aws_iam_role.vpc_flow_logs[0].id
+  count = var.enable_vpc_flow_logs ? 1 : 0
+  name  = "${var.project_name}-vpc-flow-logs"
+  role  = aws_iam_role.vpc_flow_logs[0].id
   policy = jsonencode({
-    Version   = "2012-10-17"
+    Version = "2012-10-17"
     Statement = [{
-      Effect   = "Allow"
-      Action   = [
+      Effect = "Allow"
+      Action = [
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",
