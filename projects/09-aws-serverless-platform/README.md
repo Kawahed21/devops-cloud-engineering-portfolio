@@ -6,6 +6,7 @@ Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and Dynam
 ## API
 - `GET /` returns a health response.
 - `POST /` validates a JSON `message` and writes an item to DynamoDB.
+- Both routes require AWS IAM authorization; clients must sign requests with AWS Signature Version 4.
 - Unsupported methods return 405; malformed/empty payloads return 400.
 
 ## Local tests
