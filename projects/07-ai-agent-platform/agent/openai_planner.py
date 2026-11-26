@@ -20,14 +20,27 @@ class OpenAIResponsesPlanner:
     def next_action(self, goal: str, history: list[AgentStep]) -> ToolCall | None:
         transcript = [{"role": "user", "content": goal}]
         for step in history:
-            transcript.append({
-                "role": "assistant",
-                "content": f"Called {step.tool} with {json.dumps(step.arguments)}",
-            })
-            transcript.append({
-                "role": "user",
-                "content": f"Tool result: {json.dumps(step.result, default=str)}",
-            })
+            if step.call_id:
+                transcript.append({
+                    "type": "function_call",
+                    "call_id": step.call_id,
+                    "name": step.tool,
+                    "arguments": json.dumps(step.arguments),
+                })
+                transcript.append({
+                    "type": "function_call_output",
+                    "call_id": step.call_id,
+                    "output": json.dumps(step.result, default=str),
+                })
+            else:
+                transcript.append({
+                    "role": "assistant",
+                    "content": f"Called {step.tool} with {json.dumps(step.arguments)}",
+                })
+                transcript.append({
+                    "role": "user",
+                    "content": f"Tool result: {json.dumps(step.result, default=str)}",
+                })
         payload = {
             "model": self.model,
             "input": transcript,
