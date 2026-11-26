@@ -36,7 +36,10 @@ resource "aws_dynamodb_table" "messages" {
   point_in_time_recovery {
     enabled = true
   }
-  tags = { Project = var.project_name, ManagedBy = "Terraform" }
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_iam_role" "lambda" {
