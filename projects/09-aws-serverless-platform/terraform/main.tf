@@ -26,38 +26,31 @@ resource "aws_dynamodb_table" "messages" {
   name         = "${var.project_name}-messages"
   billing_mode = "PAY_PER_REQUEST"
   hash_key     = "id"
+
   attribute {
     name = "id"
     type = "S"
   }
+
   server_side_encryption {
     enabled = true
   }
+
   point_in_time_recovery {
     enabled = true
   }
+
   tags = {
     Project   = var.project_name
     ManagedBy = "Terraform"
   }
 }
 
-resource "aws_iam_role" "lambda" {
-  name = "${var.project_name}-lambda"
-  assume_role_policy = jsonencode({
-    Version = "2012-10-17"
-    Statement = [{
-      Effect = "Allow"
-      Principal = { Service = "lambda.amazonaws.com" }
-      Action = "sts:AssumeRole"
-    }]
-  })
-}
-
 resource "aws_sqs_queue" "lambda_dlq" {
   name                      = "${var.project_name}-lambda-dlq"
   message_retention_seconds = 1209600
   sqs_managed_sse_enabled   = true
+
   tags = {
     Project   = var.project_name
     ManagedBy = "Terraform"
@@ -73,25 +66,50 @@ resource "aws_lambda_code_signing_config" "lambda" {
   allowed_publishers {
     signing_profile_version_arns = [aws_signer_signing_profile.lambda.arn]
   }
+
   policies {
     untrusted_artifact_on_deployment = "Warn"
   }
 }
 
+resource "aws_iam_role" "lambda" {
+  name               = "${var.project_name}-lambda"
+  assume_role_policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [{
+      Effect = "Allow"
+      Principal = {
+        Service = "lambda.amazonaws.com"
+      }
+      Action = "sts:AssumeRole"
+    }]
+  })
+}
+
 resource "aws_iam_role_policy" "lambda" {
   name = "${var.project_name}-dynamodb-write"
   role = aws_iam_role.lambda.id
+
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect = "Allow"
-        Action = ["dynamodb:PutItem"]
+        Effect   = "Allow"
+        Action   = ["dynamodb:PutItem"]
         Resource = aws_dynamodb_table.messages.arn
       },
       {
+        Effect   = "Allow"
+        Action   = ["sqs:SendMessage"]
+        Resource = aws_sqs_queue.lambda_dlq.arn
+      },
+      {
         Effect = "Allow"
-        Action = ["logs:CreateLogGroup", "logs:CreateLogStream", "logs:PutLogEvents"]
+        Action = [
+          "logs:CreateLogGroup",
+          "logs:CreateLogStream",
+          "logs:PutLogEvents"
+        ]
         Resource = "*"
       }
     ]
@@ -99,19 +117,26 @@ resource "aws_iam_role_policy" "lambda" {
 }
 
 resource "aws_lambda_function" "api" {
-  function_name    = "${var.project_name}-api"
-  role             = aws_iam_role.lambda.arn
-  handler          = "app.handler"
-  runtime          = "python3.12"
-  filename         = data.archive_file.lambda.output_path
-  source_code_hash = data.archive_file.lambda.output_base64sha256
-  timeout          = 10
-  memory_size      = 128
+  function_name          = "${var.project_name}-api"
+  role                   = aws_iam_role.lambda.arn
+  handler                = "app.handler"
+  runtime                = "python3.12"
+  filename               = data.archive_file.lambda.output_path
+  source_code_hash       = data.archive_file.lambda.output_base64sha256
+  timeout                = 10
+  memory_size            = 128
+  code_signing_config_arn = aws_lambda_code_signing_config.lambda.arn
+
+  dead_letter_config {
+    target_arn = aws_sqs_queue.lambda_dlq.arn
+  }
+
   environment {
     variables = {
       TABLE_NAME = aws_dynamodb_table.messages.name
     }
   }
+
   depends_on = [aws_iam_role_policy.lambda]
 }
 
@@ -128,15 +153,40 @@ resource "aws_apigatewayv2_integration" "lambda" {
 }
 
 resource "aws_apigatewayv2_route" "default" {
-  api_id    = aws_apigatewayv2_api.http.id
-  route_key = "$default"
-  target    = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "$default"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "AWS_IAM"
+}
+
+resource "aws_cloudwatch_log_group" "api_access" {
+  name              = "/aws/apigateway/${var.project_name}"
+  retention_in_days = 14
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_apigatewayv2_stage" "default" {
   api_id      = aws_apigatewayv2_api.http.id
   name        = "$default"
   auto_deploy = true
+
+  access_log_settings {
+    destination_arn = aws_cloudwatch_log_group.api_access.arn
+    format = jsonencode({
+      requestId      = "$context.requestId"
+      sourceIp       = "$context.identity.sourceIp"
+      requestTime    = "$context.requestTime"
+      httpMethod     = "$context.httpMethod"
+      routeKey       = "$context.routeKey"
+      status         = "$context.status"
+      protocol       = "$context.protocol"
+      responseLength = "$context.responseLength"
+    })
+  }
 }
 
 resource "aws_lambda_permission" "api_gateway" {
