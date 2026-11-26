@@ -2,53 +2,56 @@
 
 Last updated: 2026-11-26
 
-This tracker distinguishes committed implementation from validation actually executed. No cloud deployment is performed automatically.
+This tracker distinguishes committed implementation from validation actually executed. The complete automated validation batch passed on GitHub Actions. No AWS or Azure resources have been provisioned.
 
 ## Project status
 
-| # | Project | Implementation committed | Validation status |
+| # | Project | Implementation committed | Validation evidence / remaining |
 |---|---|---|---|
-| 01 | AWS Terraform foundation | VPC, public/private subnets across two AZs, IGW, route tables, optional NAT, restricted default SG, optional CloudWatch VPC Flow Logs with IAM role/policy | Earlier Terraform formatting passed. Latest flow-log addition and Checkov scan have not yet been rerun. No AWS plan/apply. |
-| 02 | FastAPI container | Health/readiness API, Prometheus metrics, Dockerfile and pytest suite | 3 tests passed locally; earlier GitHub Actions Python job passed. Docker build/runtime not yet verified end-to-end. |
-| 03 | Kubernetes Helm | Deployment, Service, probes, resources and hardened pod security context | Earlier Helm lint and template render passed. No cluster deployment. |
-| 04 | DevSecOps pipeline | Gitleaks, Checkov and Trivy image scanning | Gitleaks passed. Latest recorded Checkov failed only on missing VPC Flow Logs; those resources have now been added. Trivy action reference was invalid and has been updated to released tag `v0.36.0`. Both fixes await a manual pipeline run. |
-| 05 | Observability | Prometheus, alert rules, Docker Compose and Grafana provisioning/dashboard | YAML and JSON parsing passed; dashboard has four panels. Docker Compose integration not yet run. |
-| 06 | Azure Sentinel detection | Failed-sign-in and rare-IP KQL examples | Requires a compatible Sentinel workspace and synthetic events; not executed. |
-| 07 | Secure AI agent runtime | Planner protocol, allowlisted tool execution, bounded steps, execution trace and deterministic tools | Four pytest cases committed; CI job added, execution pending. No external model provider or side-effecting tools connected. |
-| 08 | RAG knowledge assistant | Chunking, embedder/generator protocols, cosine retrieval, top-k context and source attribution | Four pytest cases committed; CI job added, execution pending. In-memory index and deterministic test adapters only; no production model/vector DB. |
-| 09 | AWS serverless platform | API Gateway HTTP API, Python Lambda, DynamoDB, Terraform, least-privilege write role and encryption/PITR | Five Lambda handler tests committed; CI job added, execution pending. Terraform validation pending; no AWS deployment. |
-| 10 | Azure Container Apps platform | Resource group, Log Analytics, Container Apps environment/app, ingress and bounded scaling via Terraform | Terraform formatting/provider validation pending. No Azure plan/apply or live endpoint test. |
+| 01 | AWS Terraform foundation | VPC, public/private subnets across two AZs, IGW, route tables, optional NAT, restricted default SG, optional encrypted CloudWatch VPC Flow Logs and scoped IAM | Terraform fmt, init and validate passed. Checkov passed. No AWS plan/apply or deployment. |
+| 02 | FastAPI container | Health/readiness API, Prometheus metrics, non-root Docker image, dependency updates and healthcheck | **3 pytest tests passed** (one warning). Docker image build passed and Trivy found no unresolved HIGH/CRITICAL findings in the scanned image. |
+| 03 | Kubernetes Helm | Deployment, Service, probes, resource controls and hardened pod security context | Helm lint and template rendering passed. No Kubernetes cluster deployment. |
+| 04 | DevSecOps pipeline | Gitleaks, Checkov and Trivy image scanning | Gitleaks passed, Checkov passed across all Terraform projects, and Trivy container scan passed. |
+| 05 | Observability | Prometheus, alert rules, Docker Compose, Grafana datasource/dashboard provisioning | Docker Compose config passed; API health/metrics, Prometheus scrape target and Grafana health integration checks passed. |
+| 06 | Azure Sentinel detection | Failed-sign-in and rare-IP KQL examples | KQL files are committed, but query execution still requires a compatible Sentinel workspace and synthetic sign-in events. |
+| 07 | Secure AI agent runtime | Planner protocol, OpenAI Responses API adapter, allowlisted tools, bounded execution, trace and function-call output handling | **8 pytest tests passed**, including mocked Responses API calls. No live model API call or side-effecting tools connected. |
+| 08 | RAG knowledge assistant | Chunking, embedding/generator protocols, cosine retrieval, top-k context, source attribution and OpenAI adapters | **6 pytest tests passed**, including mocked embedding/generation API calls. The index remains in-memory; no persistent vector database or retrieval evaluation suite yet. |
+| 09 | AWS serverless platform | API Gateway HTTP API, Lambda, DynamoDB, private VPC subnets, DynamoDB gateway endpoint, KMS, VPC Flow Logs, X-Ray, concurrency limit, SQS DLQ and IAM authorization | **5 Lambda handler tests passed**. Terraform fmt/init/validate passed and Checkov passed. No AWS plan/apply or deployment. |
+| 10 | Azure Container Apps platform | Resource group, Log Analytics, Container Apps environment/app, ingress and bounded scaling via Terraform | Terraform fmt/init/validate passed. No Azure plan/apply or live endpoint test. |
+
+## Full validation evidence
+
+GitHub Actions run **45874019760** completed successfully for commit **b55a18c2**:
+
+- Documentation checks — passed.
+- Python tests — **22 passed** across the API, agent, RAG and AWS Lambda projects (the API suite reported one warning).
+- Terraform formatting — passed for all three Terraform projects.
+- Terraform initialization and validation — passed for AWS network foundation, AWS serverless and Azure Container Apps.
+- Helm lint and template render — passed.
+- Gitleaks secret scan — passed.
+- Checkov IaC scan — passed across the repository's Terraform projects.
+- Docker image build — passed.
+- Trivy image scan — passed with no unresolved HIGH/CRITICAL findings.
+- Observability integration — Docker Compose configuration, API health/metrics, Prometheus scrape and Grafana health all passed.
 
 ## Pipeline controls
 
-- Both `.github/workflows/ci.yml` and `.github/workflows/security.yml` now use `workflow_dispatch` only.
-- Pushes and pull requests no longer launch repeated pipeline runs while implementation is in progress.
-- The manual CI workflow now includes documentation checks, existing API tests, AI-agent tests, RAG tests, AWS Lambda tests, Terraform formatting/validation and Helm lint/render.
-- The manual security workflow scans repository secrets, Terraform files across the repository, and the container image.
-- Run the workflows manually once the implementation batch is ready; do not treat unexecuted workflows as passing.
+- The three GitHub Actions workflows use manual workflow_dispatch triggers only.
+- Pushes and pull requests do not automatically trigger these pipelines.
+- Run the validation workflows manually when you want another test cycle.
+- The final validation workflow covers docs, Python suites, Terraform fmt/init/validate, Helm, Gitleaks, Checkov, Trivy and Docker Compose integration.
 
-## Previous CI evidence
+## Remaining work before production claims
 
-- Portfolio CI run `45864502079` passed on commit `70f888e4`, before the new AI/RAG/AWS/Azure projects were added.
-- DevSecOps run `45864502176` failed: Gitleaks passed; Checkov flagged VPC Flow Logs as missing; Trivy action tag `0.33.1` could not be resolved. Flow Logs support and a valid Trivy action release tag have since been committed but not rerun.
-- Earlier CI run `45864408011` passed documentation, Python API tests, Terraform formatting and Helm lint/render for the earlier six-project baseline.
+1. Validate Sentinel KQL with synthetic events in an authorized test workspace.
+2. Add persistent vector storage, document ingestion/parsing and retrieval-quality evaluations to the RAG project.
+3. Exercise the OpenAI agent/RAG adapters against a live API account only when an API key and budget are configured; current tests mock the HTTP API.
+4. Add deployment workflows using AWS OIDC and Azure federated identity, with approval gates and teardown procedures.
+5. Run reviewed AWS/Azure plans and live deployment tests only after explicit account and cost approval.
+6. Deploy the Helm chart to a test Kubernetes cluster and capture real rollout evidence.
+7. Add Alertmanager receivers, persistent observability volumes, TLS/authentication hardening and production dashboards.
+8. For production Lambda deployment, switch code-signing policy from Warn to Enforce and sign the release artifact in a trusted pipeline.
 
-## Remaining validation and engineering work
+## Environment and cost guardrails
 
-1. Run Python tests for projects 07, 08 and 09; fix any failures.
-2. Run Terraform fmt/init/validate for projects 01, 09 and 10; resolve provider/schema issues.
-3. Run Checkov across all Terraform projects and fix findings rather than suppressing them without justification.
-4. Run Trivy against the built API image and resolve critical/high vulnerabilities or document accepted exceptions.
-5. Run Docker Compose integration tests for the observability stack.
-6. Add retrieval evaluation and persistent vector storage to the RAG project; optional OpenAI adapters are committed but have not been tested against a live account.
-7. Validate Sentinel KQL using synthetic records in a test workspace.
-8. Add Azure/AWS deployment workflows using OIDC/federated identity, approval gates and teardown guidance; do not provision resources without explicit approval.
-9. Add screenshots, test reports and deployment evidence only after actual runs.
-
-## Environment limitations
-
-The local execution container cannot clone GitHub and does not have Terraform, Helm or Docker installed. GitHub Actions is configured as the validation environment. Cloud-dependent tests require separately authorized AWS/Azure environments.
-
-## Cost and security guardrails
-
-No billable AWS or Azure resources are created by these commits. NAT Gateways, CloudWatch Flow Logs, DynamoDB, Log Analytics and Container Apps can incur charges. Cloud apply/deploy operations require explicit approval and cost review. Never commit credentials, tokens, Terraform state, kubeconfigs or customer data.
+The local execution container does not include Terraform, Helm or Docker, so the full test suite was executed in GitHub Actions. No billable AWS or Azure resources were created. NAT Gateways, KMS keys, CloudWatch ingestion/retention, DynamoDB, Log Analytics and Container Apps can incur charges. Cloud apply/deploy operations require explicit approval and cost review. Never commit credentials, tokens, Terraform state, kubeconfigs or customer data.
