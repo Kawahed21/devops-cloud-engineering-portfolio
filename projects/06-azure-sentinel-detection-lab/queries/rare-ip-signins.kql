@@ -1,0 +1,5 @@
+SigninLogs
+| where TimeGenerated > ago(7d)
+| summarize SignInCount = count() by IPAddress
+| where SignInCount between (1 .. 3)
+| order by SignInCount asc
