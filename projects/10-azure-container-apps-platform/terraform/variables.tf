@@ -34,6 +34,10 @@ variable "min_replicas" {
   type        = number
   description = "Minimum Container Apps replicas"
   default     = 0
+  validation {
+    condition     = var.min_replicas >= 0 && var.min_replicas <= var.max_replicas
+    error_message = "min_replicas must be non-negative and no greater than max_replicas."
+  }
 }
 
 variable "max_replicas" {
@@ -41,7 +45,7 @@ variable "max_replicas" {
   description = "Maximum Container Apps replicas"
   default     = 2
   validation {
-    condition     = var.max_replicas >= 1
-    error_message = "max_replicas must be at least one."
+    condition     = var.max_replicas >= 1 && var.max_replicas <= 10
+    error_message = "max_replicas must be between one and ten."
   }
 }
