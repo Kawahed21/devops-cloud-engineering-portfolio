@@ -5,8 +5,9 @@ Build a small HTTP service with health checks, unit tests and a reproducible Doc
 
 ## Service contract
 - `GET /`: service identity and status.
-- `GET /health`: liveness/readiness-friendly health response.
-- `GET /metrics`: reserved extension point for Prometheus metrics.
+- `GET /health`: liveness endpoint.
+- `GET /ready`: readiness endpoint.
+- `GET /metrics`: Prometheus request counter and latency histogram. Route labels use registered route templates to avoid unbounded URL cardinality.
 - Listen on port 8000 inside the container.
 
 ## Suggested stack
