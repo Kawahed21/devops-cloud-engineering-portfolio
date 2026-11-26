@@ -27,6 +27,7 @@ def test_parses_function_call(monkeypatch):
             "output": [{
                 "type": "function_call",
                 "name": "lookup",
+                "call_id": "call_123",
                 "arguments": '{"query":"status"}',
             }]
         })
@@ -38,7 +39,8 @@ def test_parses_function_call(monkeypatch):
     )
     call = planner.next_action("Check status", [])
     assert call.name == "lookup"
-    assert call.arguments == {"query": "status"}\n    assert call.call_id == "call_123"
+    assert call.arguments == {"query": "status"}
+    assert call.call_id == "call_123"
 
 
 def test_no_tool_call_finishes(monkeypatch):
