@@ -32,7 +32,7 @@ resource "aws_iam_role" "vpc_flow_logs" {
       Action    = "sts:AssumeRole"
     }]
   })
-  tags = local.common_tags
+  tags               = local.common_tags
 }
 
 resource "aws_iam_role_policy" "vpc_flow_logs" {
@@ -42,8 +42,8 @@ resource "aws_iam_role_policy" "vpc_flow_logs" {
   policy = jsonencode({
     Version   = "2012-10-17"
     Statement = [{
-      Effect = "Allow"
-      Action = [
+      Effect   = "Allow"
+      Action   = [
         "logs:CreateLogStream",
         "logs:PutLogEvents",
         "logs:DescribeLogGroups",
