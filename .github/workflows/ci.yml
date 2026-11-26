@@ -17,7 +17,7 @@ jobs:
           set -euo pipefail
           test -s README.md
           test -s LICENSE
-          for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md; do
+          for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md projects/07-ai-agent-platform/README.md projects/08-rag-knowledge-assistant/README.md; do
             test -s "$file"
           done
 
@@ -57,3 +57,33 @@ jobs:
         run: helm lint projects/03-kubernetes-helm-platform/chart
       - name: Render Helm chart
         run: helm template portfolio-api projects/03-kubernetes-helm-platform/chart
+
+  ai-agent-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/07-ai-agent-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run agent runtime tests
+        run: pytest -q
+
+  rag-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/08-rag-knowledge-assistant
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run RAG pipeline tests
+        run: pytest -q
