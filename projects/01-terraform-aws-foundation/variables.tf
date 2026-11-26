@@ -21,7 +21,7 @@ variable "availability_zones" {
   type        = list(string)
   default     = ["ap-south-1a", "ap-south-1b"]
   validation {
-    condition     = length(var.availability_zones) == 2
+    condition     = length(var.availability_zones) == 2 && length(distinct(var.availability_zones)) == 2
     error_message = "Provide exactly two availability zone names."
   }
 }
