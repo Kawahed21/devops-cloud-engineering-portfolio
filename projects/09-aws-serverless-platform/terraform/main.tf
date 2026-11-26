@@ -309,14 +309,25 @@ resource "aws_iam_role_policy" "lambda" {
       {
         Effect = "Allow"
         Action = [
-          "logs:CreateLogGroup",
           "logs:CreateLogStream",
           "logs:PutLogEvents"
         ]
-        Resource = "*"
+        Resource = "${aws_cloudwatch_log_group.lambda.arn}:*"
       }
     ]
   })
+}
+
+
+resource "aws_cloudwatch_log_group" "lambda" {
+  name              = "/aws/lambda/${var.project_name}-api"
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.application.arn
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "Terraform"
+  }
 }
 
 resource "aws_lambda_function" "api" {
@@ -355,7 +366,8 @@ resource "aws_lambda_function" "api" {
     aws_iam_role_policy.lambda,
     aws_iam_role_policy_attachment.lambda_vpc,
     aws_route_table_association.lambda_private,
-    aws_vpc_endpoint.dynamodb
+    aws_vpc_endpoint.dynamodb,
+    aws_cloudwatch_log_group.lambda
   ]
 }
 
