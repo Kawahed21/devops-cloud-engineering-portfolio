@@ -2,24 +2,27 @@
 
 Last updated: 2026-11-26
 
-Status reflects files committed to GitHub, not presumed deployment. Only record tests as passed after an actual test run or a successful GitHub Actions result.
+This tracker separates committed code from validations actually executed. Cloud deployment is intentionally not performed automatically.
 
-| Project | Current implementation | Validation state |
+| Project | Committed implementation | Validation evidence / remaining |
 |---|---|---|
-| 01 AWS Terraform | VPC, two public/private AZ subnets, IGW, public/private route tables, optional AZ-local NAT Gateways, variables and outputs | Terraform CLI/provider validation pending |
-| 02 FastAPI container | API, health/readiness endpoints, Prometheus metrics, Dockerfile, pytest tests | Local execution evidence pending; GitHub Actions CI should run tests |
-| 03 Kubernetes Helm | Deployment, Service, probes, resource controls and pod hardening | Helm lint/render pending |
-| 04 DevSecOps | Gitleaks, Checkov and Trivy GitHub Actions workflow | Workflow execution pending |
-| 05 Observability | Prometheus scrape config, alert rules and Docker Compose | Compose and Prometheus config validation pending |
-| 06 Azure Sentinel | Failed-sign-in and low-frequency IP KQL examples | Requires a compatible Log Analytics/Sentinel workspace |
+| 01 AWS Terraform | VPC, two public/private AZ subnets, IGW, public/private route tables, optional AZ-local NAT Gateways, variables and outputs | Terraform CLI is unavailable in this execution environment; fmt/validate/plan remain pending. NAT is disabled by default to avoid accidental charges. |
+| 02 FastAPI container | API root, health/readiness, Prometheus metrics, Dockerfile, requirements and pytest suite | **Passed:** `pytest -q` — 3 passed in 0.31s using the exact committed app and test source in an isolated local test directory. Docker image build not run (Docker CLI unavailable). |
+| 03 Kubernetes Helm | Deployment, Service, probes, resource controls and pod hardening | Helm lint/render not run (Helm CLI unavailable). |
+| 04 DevSecOps | GitHub Actions workflow for Gitleaks, Checkov and Trivy; CI workflow includes API tests, Terraform format and Helm checks | Workflow execution pending GitHub Actions. |
+| 05 Observability | Prometheus scrape config, alert rules and Docker Compose stack | **Passed:** YAML parse checks for Compose, Prometheus scrape config and alert rules using PyYAML. Docker Compose/Prometheus runtime validation not run (Docker CLI unavailable). |
+| 06 Azure Sentinel | Failed-sign-in and low-frequency IP KQL examples with workspace guidance | Requires compatible Log Analytics/Sentinel workspace and sample events; not executed. |
 
 ## Outstanding work
-- Run and fix all executable tests and static checks.
-- Add Grafana provisioning/dashboard and Alertmanager routing.
-- Validate Helm chart with Helm CLI and Terraform with Terraform CLI.
+- Inspect GitHub Actions results and fix any failed jobs.
+- Run Terraform fmt/validate with Terraform CLI and provider initialization.
+- Run Helm lint/template with Helm CLI and deploy only to a disposable cluster after image publication.
+- Add Grafana dashboard provisioning and Alertmanager receiver configuration.
 - Validate KQL against synthetic records in a test workspace.
-- Review action pinning and supply-chain hardening.
-- Add screenshots, sanitized run evidence and deployment notes only after execution.
+- Add sanitized screenshots and deployment evidence only after actual execution.
+
+## Environment limitations
+The execution container could not resolve github.com for a git clone and does not have Terraform, Helm or Docker installed. GitHub connector writes were used to commit the project files. This prevents local Docker, Helm and Terraform execution in this run; those checks are included in GitHub Actions where applicable.
 
 ## Cloud safety
-No billable AWS or Azure resources are created by this repository automation. AWS apply and Sentinel workspace ingestion require separate cost review and explicit approval. Never commit secrets, Terraform state, kubeconfigs, tokens or customer data.
+No billable AWS or Azure resources are created by this automation. AWS apply and Sentinel workspace ingestion require separate cost review and explicit approval. Never commit secrets, Terraform state, kubeconfigs, tokens or customer data.
