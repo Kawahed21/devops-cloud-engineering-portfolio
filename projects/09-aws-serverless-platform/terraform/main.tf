@@ -54,6 +54,30 @@ resource "aws_iam_role" "lambda" {
   })
 }
 
+resource "aws_sqs_queue" "lambda_dlq" {
+  name                      = "${var.project_name}-lambda-dlq"
+  message_retention_seconds = 1209600
+  sqs_managed_sse_enabled   = true
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_signer_signing_profile" "lambda" {
+  name        = "${var.project_name}-lambda"
+  platform_id = "AWSLambda-SHA384-ECDSA"
+}
+
+resource "aws_lambda_code_signing_config" "lambda" {
+  allowed_publishers {
+    signing_profile_version_arns = [aws_signer_signing_profile.lambda.arn]
+  }
+  policies {
+    untrusted_artifact_on_deployment = "Warn"
+  }
+}
+
 resource "aws_iam_role_policy" "lambda" {
   name = "${var.project_name}-dynamodb-write"
   role = aws_iam_role.lambda.id
