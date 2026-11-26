@@ -58,6 +58,4 @@ class AgentRuntime:
                 raise AgentError("Tool arguments must be an object")
             result = tool(**call.arguments)
             history.append(AgentStep(call.name, call.arguments, result))
-        if self.planner.next_action(goal, history) is not None:
-            raise AgentError("Maximum agent steps exceeded")
-        return history
+        raise AgentError("Maximum agent steps exceeded")
