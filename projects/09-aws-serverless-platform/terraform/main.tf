@@ -16,10 +16,67 @@ provider "aws" {
   region = var.aws_region
 }
 
+data "aws_availability_zones" "available" {
+  state = "available"
+}
+
+data "aws_caller_identity" "current" {}
+
 data "archive_file" "lambda" {
   type        = "zip"
   source_file = "${path.module}/../lambda/app.py"
   output_path = "${path.module}/lambda.zip"
+}
+
+resource "aws_kms_key" "application" {
+  description             = "Encryption key for ${var.project_name} Lambda environment and API access logs"
+  deletion_window_in_days = 7
+  enable_key_rotation     = true
+
+  policy = jsonencode({
+    Version = "2012-10-17"
+    Statement = [
+      {
+        Sid    = "EnableAccountAdministration"
+        Effect = "Allow"
+        Principal = {
+          AWS = "arn:aws:iam::${data.aws_caller_identity.current.account_id}:root"
+        }
+        Action   = "kms:*"
+        Resource = "*"
+      },
+      {
+        Sid    = "AllowCloudWatchLogsUse"
+        Effect = "Allow"
+        Principal = {
+          Service = "logs.${var.aws_region}.amazonaws.com"
+        }
+        Action = [
+          "kms:Encrypt*",
+          "kms:Decrypt*",
+          "kms:ReEncrypt*",
+          "kms:GenerateDataKey*",
+          "kms:Describe*"
+        ]
+        Resource = "*"
+        Condition = {
+          ArnLike = {
+            "kms:EncryptionContext:aws:logs:arn" = "arn:aws:logs:${var.aws_region}:${data.aws_caller_identity.current.account_id}:log-group:/aws/apigateway/${var.project_name}"
+          }
+        }
+      }
+    ]
+  })
+
+  tags = {
+    Project   = var.project_name
+    ManagedBy = "Terraform"
+  }
+}
+
+resource "aws_kms_alias" "application" {
+  name          = "alias/${var.project_name}-application"
+  target_key_id = aws_kms_key.application.key_id
 }
 
 resource "aws_dynamodb_table" "messages" {
@@ -72,8 +129,80 @@ resource "aws_lambda_code_signing_config" "lambda" {
   }
 }
 
+resource "aws_vpc" "lambda" {
+  cidr_block           = var.lambda_vpc_cidr
+  enable_dns_support   = true
+  enable_dns_hostnames = true
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-lambda-vpc"
+  }
+}
+
+resource "aws_subnet" "lambda_private" {
+  count                   = 2
+  vpc_id                  = aws_vpc.lambda.id
+  availability_zone       = data.aws_availability_zones.available.names[count.index]
+  cidr_block              = cidrsubnet(var.lambda_vpc_cidr, 8, count.index)
+  map_public_ip_on_launch = false
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-lambda-private-${count.index + 1}"
+    Tier    = "private"
+  }
+}
+
+resource "aws_route_table" "lambda_private" {
+  vpc_id = aws_vpc.lambda.id
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-lambda-private-rt"
+  }
+}
+
+resource "aws_route_table_association" "lambda_private" {
+  count          = 2
+  subnet_id      = aws_subnet.lambda_private[count.index].id
+  route_table_id = aws_route_table.lambda_private.id
+}
+
+resource "aws_vpc_endpoint" "dynamodb" {
+  vpc_id            = aws_vpc.lambda.id
+  service_name      = "com.amazonaws.${var.aws_region}.dynamodb"
+  vpc_endpoint_type = "Gateway"
+  route_table_ids   = [aws_route_table.lambda_private.id]
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-dynamodb-endpoint"
+  }
+}
+
+resource "aws_security_group" "lambda" {
+  name        = "${var.project_name}-lambda"
+  description = "Allow HTTPS egress only to the DynamoDB gateway endpoint prefix list"
+  vpc_id      = aws_vpc.lambda.id
+
+  egress {
+    from_port       = 443
+    to_port         = 443
+    protocol        = "tcp"
+    prefix_list_ids = [aws_vpc_endpoint.dynamodb.prefix_list_id]
+    description     = "DynamoDB gateway endpoint"
+  }
+
+  tags = {
+    Project = var.project_name
+    Name    = "${var.project_name}-lambda-sg"
+  }
+}
+
 resource "aws_iam_role" "lambda" {
-  name               = "${var.project_name}-lambda"
+  name = "${var.project_name}-lambda"
+
   assume_role_policy = jsonencode({
     Version = "2012-10-17"
     Statement = [{
@@ -86,22 +215,37 @@ resource "aws_iam_role" "lambda" {
   })
 }
 
+resource "aws_iam_role_policy_attachment" "lambda_vpc" {
+  role       = aws_iam_role.lambda.name
+  policy_arn = "arn:aws:iam::aws:policy/service-role/AWSLambdaVPCAccessExecutionRole"
+}
+
 resource "aws_iam_role_policy" "lambda" {
-  name = "${var.project_name}-dynamodb-write"
+  name = "${var.project_name}-runtime"
   role = aws_iam_role.lambda.id
 
   policy = jsonencode({
     Version = "2012-10-17"
     Statement = [
       {
-        Effect   = "Allow"
-        Action   = ["dynamodb:PutItem"]
+        Effect = "Allow"
+        Action = [
+          "dynamodb:PutItem"
+        ]
         Resource = aws_dynamodb_table.messages.arn
       },
       {
         Effect   = "Allow"
         Action   = ["sqs:SendMessage"]
         Resource = aws_sqs_queue.lambda_dlq.arn
+      },
+      {
+        Effect = "Allow"
+        Action = [
+          "kms:Decrypt",
+          "kms:GenerateDataKey"
+        ]
+        Resource = aws_kms_key.application.arn
       },
       {
         Effect = "Allow"
@@ -117,18 +261,29 @@ resource "aws_iam_role_policy" "lambda" {
 }
 
 resource "aws_lambda_function" "api" {
-  function_name          = "${var.project_name}-api"
-  role                   = aws_iam_role.lambda.arn
-  handler                = "app.handler"
-  runtime                = "python3.12"
-  filename               = data.archive_file.lambda.output_path
-  source_code_hash       = data.archive_file.lambda.output_base64sha256
-  timeout                = 10
-  memory_size            = 128
+  function_name           = "${var.project_name}-api"
+  role                    = aws_iam_role.lambda.arn
+  handler                 = "app.handler"
+  runtime                 = "python3.12"
+  filename                = data.archive_file.lambda.output_path
+  source_code_hash        = data.archive_file.lambda.output_base64sha256
+  timeout                 = 10
+  memory_size             = 128
+  reserved_concurrent_executions = 5
   code_signing_config_arn = aws_lambda_code_signing_config.lambda.arn
+  kms_key_arn             = aws_kms_key.application.arn
+
+  tracing_config {
+    mode = "Active"
+  }
 
   dead_letter_config {
     target_arn = aws_sqs_queue.lambda_dlq.arn
+  }
+
+  vpc_config {
+    subnet_ids         = aws_subnet.lambda_private[*].id
+    security_group_ids = [aws_security_group.lambda.id]
   }
 
   environment {
@@ -137,7 +292,12 @@ resource "aws_lambda_function" "api" {
     }
   }
 
-  depends_on = [aws_iam_role_policy.lambda]
+  depends_on = [
+    aws_iam_role_policy.lambda,
+    aws_iam_role_policy_attachment.lambda_vpc,
+    aws_route_table_association.lambda_private,
+    aws_vpc_endpoint.dynamodb
+  ]
 }
 
 resource "aws_apigatewayv2_api" "http" {
@@ -161,7 +321,8 @@ resource "aws_apigatewayv2_route" "default" {
 
 resource "aws_cloudwatch_log_group" "api_access" {
   name              = "/aws/apigateway/${var.project_name}"
-  retention_in_days = 14
+  retention_in_days = 365
+  kms_key_id        = aws_kms_key.application.arn
 
   tags = {
     Project   = var.project_name
