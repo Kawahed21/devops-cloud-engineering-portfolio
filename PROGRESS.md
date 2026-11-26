@@ -8,7 +8,7 @@ This tracker distinguishes committed implementation from validation actually exe
 
 | # | Project | Implementation committed | Validation evidence / remaining |
 |---|---|---|---|
-| 01 | AWS Terraform foundation | VPC, public/private subnets across two AZs, IGW, route tables, optional NAT, restricted default SG, optional encrypted CloudWatch VPC Flow Logs and scoped IAM | Terraform fmt, init and validate passed. Checkov passed. No AWS plan/apply or deployment. |
+| 01 | AWS Terraform foundation | VPC, public/private subnets across two AZs, IGW, route tables, optional NAT, restricted default SG, optional CloudWatch VPC Flow Logs and scoped IAM | Terraform fmt, init and validate passed. Checkov passed. No AWS plan/apply or deployment. |
 | 02 | FastAPI container | Health/readiness API, Prometheus metrics, non-root Docker image, dependency updates and healthcheck | **3 pytest tests passed** (one warning). Docker image build passed and Trivy found no unresolved HIGH/CRITICAL findings in the scanned image. |
 | 03 | Kubernetes Helm | Deployment, Service, probes, resource controls and hardened pod security context | Helm lint and template rendering passed. No Kubernetes cluster deployment. |
 | 04 | DevSecOps pipeline | Gitleaks, Checkov and Trivy image scanning | Gitleaks passed, Checkov passed across all Terraform projects, and Trivy container scan passed. |
