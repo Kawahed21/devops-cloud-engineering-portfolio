@@ -40,7 +40,7 @@ This tracker distinguishes committed implementation from validation actually exe
 3. Run Checkov across all Terraform projects and fix findings rather than suppressing them without justification.
 4. Run Trivy against the built API image and resolve critical/high vulnerabilities or document accepted exceptions.
 5. Run Docker Compose integration tests for the observability stack.
-6. Add actual model-provider adapters, retrieval evaluation and persistent vector storage to the AI/RAG projects.
+6. Add retrieval evaluation and persistent vector storage to the RAG project; optional OpenAI adapters are committed but have not been tested against a live account.
 7. Validate Sentinel KQL using synthetic records in a test workspace.
 8. Add Azure/AWS deployment workflows using OIDC/federated identity, approval gates and teardown guidance; do not provision resources without explicit approval.
 9. Add screenshots, test reports and deployment evidence only after actual runs.
