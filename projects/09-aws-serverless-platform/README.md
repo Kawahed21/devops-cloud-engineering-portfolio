@@ -1,7 +1,7 @@
 # 09 — AWS Serverless API (API Gateway, Lambda, DynamoDB)
 
 ## Objective
-Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and DynamoDB on-demand storage. Lambda runs in two private subnets with a DynamoDB gateway endpoint and no NAT Gateway. The stack includes KMS encryption, VPC Flow Logs, active X-Ray tracing, reserved concurrency, an encrypted SQS dead-letter queue, a Lambda code-signing configuration and API access logging. The API route requires AWS IAM authorization.
+Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and DynamoDB on-demand storage. Lambda runs in two private subnets with DynamoDB, CloudWatch Logs and X-Ray VPC endpoints and no NAT Gateway. The stack includes KMS encryption, VPC Flow Logs, active X-Ray tracing, reserved concurrency, an encrypted SQS dead-letter queue, a Lambda code-signing configuration and API access logging. The API route requires AWS IAM authorization.
 
 ## API
 - `GET /` returns a health response.
@@ -28,10 +28,10 @@ terraform validate
 terraform plan
 ```
 
-Review the plan and costs before any apply. DynamoDB uses on-demand billing, point-in-time recovery and server-side encryption. KMS keys, CloudWatch log ingestion/retention, Lambda, API Gateway, Flow Logs and other provisioned services may incur charges. The DynamoDB gateway endpoint does not incur an hourly endpoint charge. The private VPC and DynamoDB gateway endpoint are included; no NAT Gateway is created. No resources are created by CI.
+Review the plan and costs before any apply. DynamoDB uses on-demand billing, point-in-time recovery and server-side encryption. KMS keys, CloudWatch log ingestion/retention, Lambda, API Gateway, Flow Logs and other provisioned services may incur charges. The DynamoDB gateway endpoint does not incur an hourly endpoint charge; CloudWatch Logs and X-Ray interface endpoints are billed hourly and by data processed. The private VPC and DynamoDB gateway endpoint are included; no NAT Gateway is created. No resources are created by CI.
 
 ## Security and operational notes
-- Lambda uses private subnets and a DynamoDB gateway endpoint. Its security group permits TCP/443 only to the endpoint prefix list.
+- Lambda uses private subnets and a DynamoDB gateway endpoint. Its security group permits TCP/443 only to the DynamoDB prefix list and the CloudWatch Logs/X-Ray interface endpoint security group.
 - The Lambda signing configuration is set to `Warn` so the unsigned local ZIP can be used in a lab. Production must switch to `Enforce` and sign the artifact in a trusted release pipeline.
 - The SQS DLQ is for asynchronous Lambda invocations. API Gateway invokes this function synchronously, so synchronous request failures still require API/client error handling and observability.
 - KMS encryption is enabled for Lambda environment variables, Lambda logs, API access logs and VPC Flow Logs; DynamoDB and SQS use their configured server-side encryption.
