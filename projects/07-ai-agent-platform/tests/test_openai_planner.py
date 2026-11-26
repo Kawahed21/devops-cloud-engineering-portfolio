@@ -3,6 +3,7 @@ import json
 import pytest
 
 from agent.openai_planner import OpenAIResponsesPlanner
+from agent.runtime import AgentStep
 
 
 class FakeResponse:
@@ -56,3 +57,22 @@ def test_requires_api_key(monkeypatch):
     monkeypatch.delenv("OPENAI_API_KEY", raising=False)
     with pytest.raises(ValueError, match="OPENAI_API_KEY"):
         OpenAIResponsesPlanner([])
+
+def test_sends_function_call_output_for_previous_tool(monkeypatch):
+    captured = {}
+
+    def fake_urlopen(request, timeout):
+        captured["payload"] = json.loads(request.data.decode())
+        return FakeResponse({"output": [{"type": "message"}]})
+
+    monkeypatch.setattr("agent.openai_planner.urlopen", fake_urlopen)
+    planner = OpenAIResponsesPlanner([], api_key="test-key")
+    planner.next_action(
+        "Check status",
+        [AgentStep("lookup", {"query": "status"}, {"state": "ok"}, "call_123")],
+    )
+    transcript = captured["payload"]["input"]
+    assert transcript[1]["type"] == "function_call"
+    assert transcript[1]["call_id"] == "call_123"
+    assert transcript[2]["type"] == "function_call_output"
+    assert transcript[2]["output"] == '{"state": "ok"}'
