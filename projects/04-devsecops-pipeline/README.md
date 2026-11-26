@@ -9,16 +9,16 @@ Introduce automated security checks into CI so insecure source, exposed secrets,
 | Source secrets | Gitleaks | Detect accidentally committed credentials |
 | Infrastructure as Code | Checkov | Evaluate Terraform configuration |
 | Container image | Trivy | Scan OS packages and application dependencies |
-| Dependencies | pip-audit / Trivy | Identify known vulnerable packages |
+| Dependencies | Trivy image scan | Identify known OS and installed-library vulnerabilities |
 
 ## Pipeline stages
-1. Checkout source.
-2. Install dependencies and run unit tests.
+1. Manually dispatch the workflow from GitHub Actions.
+2. Run the project test suites in the validation workflow.
 3. Run Gitleaks against repository history/source.
-4. Run Checkov on Terraform directories.
-5. Build the container image.
-6. Run Trivy image scan with a documented severity threshold.
-7. Publish only after required checks pass and credentials are available.
+4. Run Checkov across Terraform directories.
+5. Build the API container image.
+6. Run Trivy against OS packages and installed libraries, failing on HIGH and CRITICAL findings.
+7. Publish only after required checks pass and credentials are available. Image publishing is not configured in this repository.
 
 ## Policy decisions
 - Fail builds on confirmed leaked secrets.
@@ -36,7 +36,7 @@ trivy image --severity HIGH,CRITICAL portfolio-api:local
 ```
 
 ## Acceptance criteria
-- CI runs on pull requests and pushes to the default branch.
+- The current workflows use manual `workflow_dispatch` triggers; pushes and pull requests do not start scans automatically.
 - Security checks produce readable logs.
 - Secret findings block the pipeline.
 - IaC and image scan scope is explicit.
