@@ -34,7 +34,9 @@ Create a reusable AWS network foundation using Terraform: one VPC, public and pr
 - `vpc_cidr`: non-overlapping VPC CIDR.
 - `availability_zones`: two AZ names in the selected region.
 - Public/private subnet CIDRs per AZ.
-- NAT strategy: one NAT per AZ for resilience, or one shared NAT for a lower-cost lab.
+- `enable_nat_gateways`: create one NAT Gateway per AZ (default `false`; NAT Gateways incur hourly and data-processing charges).
+- `enable_vpc_flow_logs`: create VPC Flow Logs in CloudWatch (default `false`; ingestion and retention incur charges).
+- `flow_log_retention_days`: CloudWatch log retention (default 7 days).
 
 ## Implementation sequence
 1. Configure the AWS provider and required Terraform version.
@@ -47,6 +49,16 @@ Create a reusable AWS network foundation using Terraform: one VPC, public and pr
 8. Review the plan; apply only after confirming region, CIDRs and cost.
 9. Verify routes and subnet associations in AWS.
 10. Run `terraform destroy` after the lab and verify cleanup.
+
+## Optional VPC Flow Logs
+Enable flow logging for monitored environments by setting `enable_vpc_flow_logs = true`. The module creates a CloudWatch log group with configurable retention, a narrowly scoped IAM role/policy, and an `ALL`-traffic VPC Flow Log. Keep it disabled for cost-sensitive labs unless you explicitly need the telemetry. Example:
+
+```hcl
+enable_vpc_flow_logs    = true
+flow_log_retention_days = 7
+```
+
+The CloudWatch log group and IAM resources are created only when the flag is enabled.
 
 ## Validation checklist
 - [ ] No CIDR overlap with existing networks.
@@ -63,4 +75,4 @@ NAT Gateways and public IPv4 addresses can incur ongoing charges. A single NAT r
 Terraform modules, variable documentation, architecture diagram, plan review notes, deployment evidence and cleanup evidence.
 
 ## Next improvements
-Add VPC endpoints, flow logs, centralized egress, Network Firewall, policy-as-code and remote state with locking.
+Add VPC endpoints, centralized egress, Network Firewall, policy-as-code and remote state with locking.
