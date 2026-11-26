@@ -27,7 +27,7 @@ def test_split_text_overlap_and_validation():
 def test_ingest_retrieve_and_answer_with_sources():
     rag = build_pipeline()
     rag.ingest("cloud-guide.md", "Cloud networking uses VPC and subnets.", chunk_size=20, overlap=5)
-    rag.ingest("db-guide.md", "Database backups should be encrypted.", chunk_size=20)
+    rag.ingest("db-guide.md", "Database backups should be encrypted.", chunk_size=20, overlap=5)
     result = rag.ask("cloud networking", top_k=1)
     assert result["sources"] == ["cloud-guide.md"]
     assert result["retrieved_chunks"] == 1
