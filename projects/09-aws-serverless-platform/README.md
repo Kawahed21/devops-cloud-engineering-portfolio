@@ -28,10 +28,10 @@ terraform validate
 terraform plan
 ```
 
-Review the plan and costs before any apply. DynamoDB uses on-demand billing, point-in-time recovery and server-side encryption. KMS keys, CloudWatch log ingestion/retention, Lambda, API Gateway, Flow Logs and other provisioned services may incur charges. The DynamoDB gateway endpoint does not incur an hourly endpoint charge; CloudWatch Logs and X-Ray interface endpoints are billed hourly and by data processed. The private VPC and DynamoDB gateway endpoint are included; no NAT Gateway is created. No resources are created by CI.
+Review the plan and costs before any apply. DynamoDB uses on-demand billing, point-in-time recovery and server-side encryption. KMS keys, CloudWatch log ingestion/retention, Lambda, API Gateway, Flow Logs and other provisioned services may incur charges. The DynamoDB gateway endpoint does not incur an hourly endpoint charge. CloudWatch Logs and X-Ray interface endpoints are billed hourly and by data processed. The private VPC and DynamoDB gateway endpoint are included; no NAT Gateway is created. No resources are created by CI.
 
 ## Security and operational notes
-- Lambda uses private subnets and a DynamoDB gateway endpoint. Its security group permits TCP/443 only to the DynamoDB prefix list and the CloudWatch Logs/X-Ray interface endpoint security group.
+- Lambda uses private subnets and a DynamoDB gateway endpoint. Its security group permits TCP/443 to the DynamoDB prefix list and to the private VPC CIDR; the interface endpoint security group accepts HTTPS only from the Lambda security group. Private DNS is enabled for the Logs and X-Ray endpoints.
 - The Lambda signing configuration is set to `Warn` so the unsigned local ZIP can be used in a lab. Production must switch to `Enforce` and sign the artifact in a trusted release pipeline.
 - The SQS DLQ is for asynchronous Lambda invocations. API Gateway invokes this function synchronously, so synchronous request failures still require API/client error handling and observability.
 - KMS encryption is enabled for Lambda environment variables, Lambda logs, API access logs and VPC Flow Logs; DynamoDB and SQS use their configured server-side encryption.
