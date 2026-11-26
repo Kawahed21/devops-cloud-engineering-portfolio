@@ -30,8 +30,12 @@ resource "aws_dynamodb_table" "messages" {
     name = "id"
     type = "S"
   }
-  server_side_encryption { enabled = true }
-  point_in_time_recovery { enabled = true }
+  server_side_encryption {
+    enabled = true
+  }
+  point_in_time_recovery {
+    enabled = true
+  }
   tags = { Project = var.project_name, ManagedBy = "Terraform" }
 }
 
@@ -77,7 +81,9 @@ resource "aws_lambda_function" "api" {
   timeout          = 10
   memory_size      = 128
   environment {
-    variables = { TABLE_NAME = aws_dynamodb_table.messages.name }
+    variables = {
+      TABLE_NAME = aws_dynamodb_table.messages.name
+    }
   }
   depends_on = [aws_iam_role_policy.lambda]
 }
