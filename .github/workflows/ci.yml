@@ -10,11 +10,10 @@ permissions:
   contents: read
 
 jobs:
-  repository-checks:
+  documentation:
     runs-on: ubuntu-latest
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
       - name: Check required project documentation
         shell: bash
         run: |
@@ -24,4 +23,40 @@ jobs:
           for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md; do
             test -s "$file"
           done
-          echo "Portfolio documentation checks passed."
+
+  python-api:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/02-containerized-microservice
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install dependencies
+        run: pip install -r requirements.txt
+      - name: Run API tests
+        run: pytest -q
+
+  terraform-format:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: Check Terraform formatting
+        run: terraform fmt -check -recursive projects/01-terraform-aws-foundation
+
+  helm-chart:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: "v3.16.3"
+      - name: Lint Helm chart
+        run: helm lint projects/03-kubernetes-helm-platform/chart
+      - name: Render Helm chart
+        run: helm template portfolio-api projects/03-kubernetes-helm-platform/chart
