@@ -17,7 +17,7 @@ jobs:
           set -euo pipefail
           test -s README.md
           test -s LICENSE
-          for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md projects/07-ai-agent-platform/README.md projects/08-rag-knowledge-assistant/README.md; do
+          for file in projects/01-terraform-aws-foundation/README.md projects/02-containerized-microservice/README.md projects/03-kubernetes-helm-platform/README.md projects/04-devsecops-pipeline/README.md projects/05-observability-stack/README.md projects/06-azure-sentinel-detection-lab/README.md projects/07-ai-agent-platform/README.md projects/08-rag-knowledge-assistant/README.md projects/09-aws-serverless-platform/README.md projects/10-azure-container-apps-platform/README.md; do
             test -s "$file"
           done
 
@@ -44,7 +44,7 @@ jobs:
         with:
           terraform_version: "1.9.8"
       - name: Check Terraform formatting
-        run: terraform fmt -recursive projects/01-terraform-aws-foundation
+        run: terraform fmt -check -recursive projects/01-terraform-aws-foundation projects/09-aws-serverless-platform/terraform projects/10-azure-container-apps-platform/terraform
 
   helm-chart:
     runs-on: ubuntu-latest
@@ -87,3 +87,36 @@ jobs:
         run: pip install -r requirements.txt
       - name: Run RAG pipeline tests
         run: pytest -q
+
+  aws-serverless-tests:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: projects/09-aws-serverless-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install test dependencies
+        run: pip install -r requirements-dev.txt
+      - name: Run Lambda handler tests
+        run: pytest -q
+
+  terraform-validation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: Validate AWS serverless Terraform
+        working-directory: projects/09-aws-serverless-platform/terraform
+        run: |
+          terraform init -backend=false
+          terraform validate
+      - name: Validate Azure Container Apps Terraform
+        working-directory: projects/10-azure-container-apps-platform/terraform
+        run: |
+          terraform init -backend=false
+          terraform validate
