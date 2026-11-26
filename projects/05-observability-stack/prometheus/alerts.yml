@@ -12,7 +12,7 @@ groups:
         expr: |
           sum(rate(portfolio_http_requests_total{job="portfolio-api",status=~"5.."}[5m]))
           /
-          clamp_min(sum(rate(portfolio_http_requests_total{job="portfolio-api"}[5m])), 1)
+          clamp_min(sum(rate(portfolio_http_requests_total{job="portfolio-api"}[5m])), 1e-9)
           > 0.05
         for: 5m
         labels:
