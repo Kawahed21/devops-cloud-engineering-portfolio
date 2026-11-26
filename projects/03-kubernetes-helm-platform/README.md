@@ -17,6 +17,6 @@ helm upgrade --install portfolio-api chart --namespace portfolio \
 kubectl rollout status deployment/portfolio-api -n portfolio
 kubectl port-forward svc/portfolio-api 8080:80 -n portfolio
 curl -fsS http://127.0.0.1:8080/health
-``
+```
 
 Uninstall with `helm uninstall portfolio-api -n portfolio`. Add NetworkPolicy, PDB, HPA, topology spread constraints, digest pinning and TLS ingress for a production deployment.
