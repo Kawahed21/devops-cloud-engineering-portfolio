@@ -292,7 +292,7 @@ resource "aws_vpc_endpoint" "xray" {
 
 resource "aws_security_group" "lambda" {
   name        = "${var.project_name}-lambda"
-  description = "Allow HTTPS egress only to the DynamoDB gateway endpoint prefix list"
+  description = "Allow HTTPS only to DynamoDB and private AWS service endpoints"
   vpc_id      = aws_vpc.lambda.id
 
   egress {
