@@ -113,6 +113,11 @@ jobs:
       - uses: hashicorp/setup-terraform@v3
         with:
           terraform_version: "1.9.8"
+      - name: Validate AWS network foundation Terraform
+        working-directory: projects/01-terraform-aws-foundation
+        run: |
+          terraform init -backend=false
+          terraform validate
       - name: Validate AWS serverless Terraform
         working-directory: projects/09-aws-serverless-platform/terraform
         run: |
