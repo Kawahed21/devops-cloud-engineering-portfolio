@@ -1,7 +1,7 @@
 # 09 — AWS Serverless API (API Gateway, Lambda, DynamoDB)
 
 ## Objective
-Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and DynamoDB on-demand storage. The Lambda role is scoped to write only to the project table, with a separate CloudWatch Logs permission statement.
+Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and DynamoDB on-demand storage. The Lambda role is scoped to write only to the project table and send failed asynchronous invocations to an encrypted SQS dead-letter queue. The API route uses AWS IAM authorization, and the HTTP API stage sends structured access logs to a retained CloudWatch log group. A Lambda code-signing configuration is attached.
 
 ## API
 - `GET /` returns a health response.
@@ -29,8 +29,8 @@ terraform plan
 Review the plan and costs before any apply. The DynamoDB table uses on-demand billing, point-in-time recovery and server-side encryption. API Gateway and Lambda usage may incur charges. No resources are created by CI.
 
 ## Security and operational notes
-- Use workload identity/OIDC for CI deployment; never store long-lived AWS keys in Git.
-- Add API throttling, request size limits, structured logs, alarms and WAF before production.
+- The Lambda signing configuration is set to `Warn` so the unsigned local ZIP can be deployed in a lab. Production must switch to `Enforce` and sign the artifact in a trusted build pipeline before deployment.\n- The SQS DLQ is configured for asynchronous Lambda invocations; API Gateway invokes this function synchronously, so synchronous request failures still need API-level retry/error handling and client-side observability.\n- Use workload identity/OIDC for CI deployment; never store long-lived AWS keys in Git.
+- Add API throttling, request size limits, alarms and WAF before production. Access logs are enabled by this Terraform configuration.
 - Add schema validation and authorization; this demonstration endpoint is not an authenticated public write API.
 - Restrict log permissions further to a pre-created log group for a production deployment.
 - The example archive contains only the Lambda source file; package dependencies into the deployment artifact if adding non-runtime dependencies.
