@@ -2,29 +2,29 @@
 
 Last updated: 2026-11-26
 
-This tracker distinguishes committed implementation from validation actually executed. The complete automated validation batch passed on GitHub Actions. No AWS or Azure resources have been provisioned.
+This tracker distinguishes committed implementation from validation actually executed. The complete automated validation batch passed on GitHub Actions after the repository audit fixes. No AWS or Azure resources have been provisioned.
 
 ## Project status
 
 | # | Project | Implementation committed | Validation evidence / remaining |
 |---|---|---|---|
 | 01 | AWS Terraform foundation | VPC, public/private subnets across two AZs, IGW, route tables, optional NAT, restricted default SG, optional CloudWatch VPC Flow Logs and scoped IAM | Terraform fmt, init and validate passed. Checkov passed. No AWS plan/apply or deployment. |
-| 02 | FastAPI container | Health/readiness API, Prometheus metrics, non-root Docker image, dependency updates and healthcheck | **3 pytest tests passed** (one warning). Docker image build passed and Trivy found no unresolved HIGH/CRITICAL findings in the scanned image. |
+| 02 | FastAPI container | Health/readiness API, Prometheus metrics, non-root Docker image, dependency updates and healthcheck | **4 pytest tests passed** (one warning); Prometheus route labels are bounded to route templates to avoid unbounded cardinality. Docker image build passed and Trivy found no unresolved HIGH/CRITICAL findings in the scanned image. |
 | 03 | Kubernetes Helm | Deployment, Service, probes, resource controls and hardened pod security context | Helm lint and template rendering passed. No Kubernetes cluster deployment. |
 | 04 | DevSecOps pipeline | Gitleaks, Checkov and Trivy image scanning | Gitleaks passed, Checkov passed across all Terraform projects, and Trivy container scan passed. |
 | 05 | Observability | Prometheus, alert rules, Docker Compose, Grafana datasource/dashboard provisioning | Docker Compose config passed; API health/metrics, Prometheus scrape target and Grafana health integration checks passed. |
 | 06 | Azure Sentinel detection | Failed-sign-in and rare-IP KQL examples | KQL files are committed, but query execution still requires a compatible Sentinel workspace and synthetic sign-in events. |
 | 07 | Secure AI agent runtime | Planner protocol, OpenAI Responses API adapter, allowlisted tools, bounded execution, trace and function-call output handling | **8 pytest tests passed**, including mocked Responses API calls. No live model API call or side-effecting tools connected. |
 | 08 | RAG knowledge assistant | Chunking, embedding/generator protocols, cosine retrieval, top-k context, source attribution and OpenAI adapters | **6 pytest tests passed**, including mocked embedding/generation API calls. The index remains in-memory; no persistent vector database or retrieval evaluation suite yet. |
-| 09 | AWS serverless platform | API Gateway HTTP API, Lambda, DynamoDB, private VPC subnets, DynamoDB gateway endpoint, KMS, VPC Flow Logs, X-Ray, concurrency limit, SQS DLQ and IAM authorization | **5 Lambda handler tests passed**. Terraform fmt/init/validate passed and Checkov passed. No AWS plan/apply or deployment. |
+| 09 | AWS serverless platform | API Gateway HTTP API, Lambda, DynamoDB, private VPC subnets, DynamoDB/Logs/X-Ray endpoints, KMS, VPC Flow Logs, X-Ray, concurrency limit, SQS DLQ and IAM authorization on explicit GET/POST routes | **5 Lambda handler tests passed**. Terraform fmt/init/validate passed and Checkov passed. No AWS plan/apply or deployment. |
 | 10 | Azure Container Apps platform | Resource group, Log Analytics, Container Apps environment/app, ingress and bounded scaling via Terraform | Terraform fmt/init/validate passed. No Azure plan/apply or live endpoint test. |
 
 ## Full validation evidence
 
-GitHub Actions run **45874019760** completed successfully for commit **b55a18c2**:
+GitHub Actions run **45874942519** completed successfully for commit **9e7d6b02** after the full repository audit and corrective commits:
 
 - Documentation checks — passed.
-- Python tests — **22 passed** across the API, agent, RAG and AWS Lambda projects (the API suite reported one warning).
+- Python tests — **23 passed** across the API, agent, RAG and AWS Lambda projects (the API suite reported one warning).
 - Terraform formatting — passed for all three Terraform projects.
 - Terraform initialization and validation — passed for AWS network foundation, AWS serverless and Azure Container Apps.
 - Helm lint and template render — passed.
