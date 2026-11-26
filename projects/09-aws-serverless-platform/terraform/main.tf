@@ -451,9 +451,16 @@ resource "aws_apigatewayv2_integration" "lambda" {
   payload_format_version = "1.0"
 }
 
-resource "aws_apigatewayv2_route" "default" {
+resource "aws_apigatewayv2_route" "get_root" {
   api_id             = aws_apigatewayv2_api.http.id
-  route_key          = "$default"
+  route_key          = "GET /"
+  target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
+  authorization_type = "AWS_IAM"
+}
+
+resource "aws_apigatewayv2_route" "post_root" {
+  api_id             = aws_apigatewayv2_api.http.id
+  route_key          = "POST /"
   target             = "integrations/${aws_apigatewayv2_integration.lambda.id}"
   authorization_type = "AWS_IAM"
 }
