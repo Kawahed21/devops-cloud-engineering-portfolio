@@ -8,6 +8,7 @@ from typing import Any, Callable, Protocol
 class ToolCall:
     name: str
     arguments: dict[str, Any]
+    call_id: str | None = None
 
 
 @dataclass(frozen=True)
@@ -15,6 +16,7 @@ class AgentStep:
     tool: str
     arguments: dict[str, Any]
     result: Any
+    call_id: str | None = None
 
 
 class Planner(Protocol):
@@ -57,5 +59,5 @@ class AgentRuntime:
             if not isinstance(call.arguments, dict):
                 raise AgentError("Tool arguments must be an object")
             result = tool(**call.arguments)
-            history.append(AgentStep(call.name, call.arguments, result))
+            history.append(AgentStep(call.name, call.arguments, result, call.call_id))
         raise AgentError("Maximum agent steps exceeded")
