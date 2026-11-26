@@ -1,0 +1,112 @@
+name: Final Portfolio Validation
+
+on:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+jobs:
+  documentation:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Verify portfolio documentation
+        run: |
+          set -euo pipefail
+          test -s README.md
+          test -s PROGRESS.md
+          for file in projects/*/README.md; do test -s "$file"; done
+
+  python-tests:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        project:
+          - projects/02-containerized-microservice
+          - projects/07-ai-agent-platform
+          - projects/08-rag-knowledge-assistant
+          - projects/09-aws-serverless-platform
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: Install project test dependencies
+        working-directory: ${{ matrix.project }}
+        run: |
+          if [ -f requirements-dev.txt ]; then pip install -r requirements-dev.txt; fi
+          if [ -f requirements.txt ]; then pip install -r requirements.txt; fi
+      - name: Run tests
+        working-directory: ${{ matrix.project }}
+        run: pytest -q
+
+  terraform:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: hashicorp/setup-terraform@v3
+        with:
+          terraform_version: "1.9.8"
+      - name: Format check
+        run: |
+          terraform fmt -check -recursive projects/01-terraform-aws-foundation
+          terraform fmt -check -recursive projects/09-aws-serverless-platform/terraform
+          terraform fmt -check -recursive projects/10-azure-container-apps-platform/terraform
+      - name: Validate AWS network foundation
+        working-directory: projects/01-terraform-aws-foundation
+        run: terraform init -backend=false && terraform validate
+      - name: Validate AWS serverless
+        working-directory: projects/09-aws-serverless-platform/terraform
+        run: terraform init -backend=false && terraform validate
+      - name: Validate Azure Container Apps
+        working-directory: projects/10-azure-container-apps-platform/terraform
+        run: terraform init -backend=false && terraform validate
+
+  helm:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: azure/setup-helm@v4
+        with:
+          version: "v3.16.3"
+      - run: helm lint projects/03-kubernetes-helm-platform/chart
+      - run: helm template portfolio-api projects/03-kubernetes-helm-platform/chart
+
+  secret-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: gitleaks/gitleaks-action@v2
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  iac-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: bridgecrewio/checkov-action@v12
+        with:
+          directory: .
+          framework: terraform
+          soft_fail: false
+
+  container-scan:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Build API image
+        run: docker build -t portfolio-api:ci projects/02-containerized-microservice
+      - name: Scan API image
+        uses: aquasecurity/trivy-action@v0.36.0
+        with:
+          image-ref: portfolio-api:ci
+          format: table
+          exit-code: "1"
+          ignore-unfixed: true
+          vuln-type: os,library
+          severity: CRITICAL,HIGH
