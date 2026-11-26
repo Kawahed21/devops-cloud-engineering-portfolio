@@ -14,7 +14,7 @@ Create a reusable AWS network foundation using Terraform: one VPC, public and pr
                  |       VPC           |
                  |                     |
           Public subnet A       Public subnet B
-          NAT Gateway A         (optional public tier)
+          NAT Gateway A         NAT Gateway B
                  |                     |
           Private subnet A      Private subnet B
           App workloads         App workloads
