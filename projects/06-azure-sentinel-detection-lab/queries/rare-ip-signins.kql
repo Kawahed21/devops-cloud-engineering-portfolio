@@ -1,5 +1,8 @@
+// Hunting query: low-volume source IPs over seven days.
+// This is a triage lead, not a maliciousness verdict or a standalone alert.
 SigninLogs
 | where TimeGenerated > ago(7d)
-| summarize SignInCount = count() by IPAddress
+| where isnotempty(IPAddress)
+| summarize SignInCount = count(), DistinctUsers = dcount(UserPrincipalName) by IPAddress
 | where SignInCount between (1 .. 3)
 | order by SignInCount asc

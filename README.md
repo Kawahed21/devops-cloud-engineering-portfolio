@@ -13,7 +13,7 @@ A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, securit
 | 03 | [Kubernetes Helm Platform](projects/03-kubernetes-helm-platform/README.md) | Kubernetes, Helm, probes, resources | Deployable and configurable workload |
 | 04 | [DevSecOps Pipeline](projects/04-devsecops-pipeline/README.md) | GitHub Actions, Trivy, Checkov, Gitleaks | Security gates across source, IaC and images |
 | 05 | [Observability Stack](projects/05-observability-stack/README.md) | Prometheus, Grafana, Docker Compose | Metrics, dashboards and actionable alerts |
-| 06 | [Azure Sentinel Detection Lab](projects/06-azure-sentinel-detection-lab/README.md) | Microsoft Sentinel, KQL, sample events | Detection engineering lab with KQL examples |
+| 06 | [Azure Sentinel Detection Lab](projects/06-azure-sentinel-detection-lab/README.md) | Microsoft Sentinel, KQL, synthetic fixtures, pytest | KQL contract tests and analyst detection guidance |
 | 07 | [Secure AI Agent Runtime](projects/07-ai-agent-platform/README.md) | Python, OpenAI Responses API, tool allowlists | Bounded, auditable tool-using agent |
 | 08 | [RAG Knowledge Assistant](projects/08-rag-knowledge-assistant/README.md) | Python, embeddings, retrieval, generation | Testable retrieval-augmented generation core |
 | 09 | [AWS Serverless Platform](projects/09-aws-serverless-platform/README.md) | API Gateway, Lambda, DynamoDB, Terraform | Private-network serverless API with security controls |
@@ -58,7 +58,7 @@ A hands-on portfolio of ten infrastructure, platform engineering, CI/CD, securit
 
 ## Validation
 
-The complete automated validation batch passed. See [PROGRESS.md](PROGRESS.md) for the run ID, test counts and the remaining cloud/workspace-dependent work. All GitHub Actions workflows are manual-trigger only to avoid repeated runs on every commit.
+The automated validation workflow runs on demand, and the Sentinel contract suite also runs when its project files or workflow change on `main`. See [PROGRESS.md](PROGRESS.md) for exact run IDs, test counts and remaining cloud/workspace-dependent work. Local Sentinel tests do not replace live KQL execution in a test workspace.
 
 ## About
 

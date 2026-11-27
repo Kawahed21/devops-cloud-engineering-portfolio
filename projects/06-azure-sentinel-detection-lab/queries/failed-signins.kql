@@ -1,6 +1,9 @@
+// Detection: repeated failed sign-ins for one identity from one source IP.
+// Required connector/table: Microsoft Entra ID sign-in logs -> SigninLogs.
 SigninLogs
 | where TimeGenerated > ago(1d)
 | where ResultType != "0"
+| where isnotempty(UserPrincipalName) and isnotempty(IPAddress)
 | summarize FailedAttempts = count() by UserPrincipalName, IPAddress, bin(TimeGenerated, 15m)
 | where FailedAttempts >= 5
 | order by FailedAttempts desc
