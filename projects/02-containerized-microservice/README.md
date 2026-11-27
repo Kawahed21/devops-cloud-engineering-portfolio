@@ -1,4 +1,4 @@
-# 02 — Containerized Python Microservice
+# 02: Containerized Python Microservice
 
 ## Objective
 Build a small HTTP service with health checks, unit tests and a reproducible Docker image. Use it as the workload for the Kubernetes, security and observability labs.

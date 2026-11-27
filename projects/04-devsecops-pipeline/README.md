@@ -1,4 +1,4 @@
-# 04 — DevSecOps Pipeline
+# 04: DevSecOps Pipeline
 
 ## Objective
 Introduce automated security checks into CI so insecure source, exposed secrets, vulnerable container images and risky Terraform configuration are detected before release.

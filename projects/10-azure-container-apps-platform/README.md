@@ -1,4 +1,4 @@
-# 10 — Azure Container Apps Platform
+# 10: Azure Container Apps Platform
 
 ## Objective
 Provision a minimal Azure Container Apps environment using Terraform, backed by Log Analytics for platform logs. The sample uses Microsoft's public hello-world container image and scale-to-zero configuration.

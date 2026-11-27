@@ -1,4 +1,4 @@
-# 06 — Azure Sentinel Detection Lab
+# 06: Azure Sentinel Detection Lab
 
 ## Objective
 Practise cloud security monitoring with Microsoft Sentinel and Kusto Query Language (KQL), using synthetic events and documented detection logic.

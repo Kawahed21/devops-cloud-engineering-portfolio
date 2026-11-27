@@ -1,4 +1,4 @@
-# 07 — Secure AI Agent Runtime
+# 07: Secure AI Agent Runtime
 
 ## Objective
 A testable tool-using agent runtime with a provider-neutral planner protocol, an optional OpenAI Responses API planner, explicit tool allowlists, bounded execution and an auditable execution trace.

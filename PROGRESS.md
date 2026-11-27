@@ -23,16 +23,16 @@ This tracker distinguishes committed implementation from validation actually exe
 
 GitHub Actions run **45874942519** completed successfully for commit **9e7d6b02** after the full repository audit and corrective commits:
 
-- Documentation checks — passed.
-- Python tests — **23 passed** across the API, agent, RAG and AWS Lambda projects (the API suite reported one warning).
-- Terraform formatting — passed for all three Terraform projects.
-- Terraform initialization and validation — passed for AWS network foundation, AWS serverless and Azure Container Apps.
-- Helm lint and template render — passed.
-- Gitleaks secret scan — passed.
-- Checkov IaC scan — passed across the repository's Terraform projects.
-- Docker image build — passed.
-- Trivy image scan — passed with no unresolved HIGH/CRITICAL findings.
-- Observability integration — Docker Compose configuration, API health/metrics, Prometheus scrape and Grafana health all passed.
+- Documentation checks: passed.
+- Python tests: **23 passed** across the API, agent, RAG and AWS Lambda projects (the API suite reported one warning).
+- Terraform formatting: passed for all three Terraform projects.
+- Terraform initialization and validation: passed for AWS network foundation, AWS serverless and Azure Container Apps.
+- Helm lint and template render: passed.
+- Gitleaks secret scan: passed.
+- Checkov IaC scan: passed across the repository's Terraform projects.
+- Docker image build: passed.
+- Trivy image scan: passed with no unresolved HIGH/CRITICAL findings.
+- Observability integration: Docker Compose configuration, API health/metrics, Prometheus scrape and Grafana health all passed.
 
 ## Pipeline controls
 

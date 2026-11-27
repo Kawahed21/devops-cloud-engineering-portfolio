@@ -1,4 +1,4 @@
-# 01 — Terraform AWS Foundation
+# 01: Terraform AWS Foundation
 
 ## Objective
 Create a reusable AWS network foundation using Terraform: one VPC, public and private subnets across two Availability Zones, an Internet Gateway, route tables and controlled outbound access through NAT.

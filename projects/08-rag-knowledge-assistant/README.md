@@ -1,4 +1,4 @@
-# 08 — RAG Knowledge Assistant
+# 08: RAG Knowledge Assistant
 
 ## Objective
 A retrieval-augmented generation pipeline with chunking, an embedding abstraction, cosine-similarity retrieval, top-k context selection, grounded answer generation and source attribution. Optional OpenAI adapters provide real embeddings and generation while the tests remain deterministic.

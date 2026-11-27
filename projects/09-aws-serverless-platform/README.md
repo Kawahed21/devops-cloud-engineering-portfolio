@@ -1,4 +1,4 @@
-# 09 — AWS Serverless API (API Gateway, Lambda, DynamoDB)
+# 09: AWS Serverless API (API Gateway, Lambda, DynamoDB)
 
 ## Objective
 Deploy a small HTTP API using API Gateway HTTP API, Python 3.12 Lambda and DynamoDB on-demand storage. Lambda runs in two private subnets with DynamoDB, CloudWatch Logs and X-Ray VPC endpoints and no NAT Gateway. The stack includes KMS encryption, VPC Flow Logs, active X-Ray tracing, reserved concurrency, an encrypted SQS dead-letter queue, a Lambda code-signing configuration and API access logging. The API route requires AWS IAM authorization.
